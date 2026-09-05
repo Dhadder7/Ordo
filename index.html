@@ -54,6 +54,8 @@ class="date-display"
 
 <div class="header-right">
 
+<div class="header-actions">
+
 <div class="day-progress">
 
 <div class="progress-label-row">
@@ -81,6 +83,21 @@ class="progress-fill"
 
 </div>
 
+
+<button
+id="menuButton"
+class="menu-button"
+aria-label="Open menu"
+aria-expanded="false"
+>
+<span></span>
+<span></span>
+<span></span>
+</button>
+
+</div>
+
+
 <button
 id="resetButton"
 class="secondary-button"
@@ -96,7 +113,135 @@ Reset Today
 
 
 
+<div
+id="menuBackdrop"
+class="menu-backdrop"
+></div>
+
+
+<aside
+id="sideMenu"
+class="side-menu"
+aria-hidden="true"
+>
+
+<div class="side-menu-header">
+
+<div>
+
+<div class="small-title">
+NAVIGATION
+</div>
+
+<h2>
+Development System
+</h2>
+
+</div>
+
+
+<button
+id="closeMenuButton"
+class="menu-close-button"
+aria-label="Close menu"
+>
+×
+</button>
+
+</div>
+
+
+<nav class="menu-navigation">
+
+<button
+class="menu-nav-button active"
+data-view="todayView"
+>
+
+<span class="menu-nav-icon">
+📋
+</span>
+
+<span>
+Today's Plan
+</span>
+
+</button>
+
+
+<button
+class="menu-nav-button"
+data-view="weeklyView"
+>
+
+<span class="menu-nav-icon">
+🗓️
+</span>
+
+<span>
+Weekly Schedule
+</span>
+
+</button>
+
+
+<button
+class="menu-nav-button"
+data-view="resourcesView"
+>
+
+<span class="menu-nav-icon">
+📚
+</span>
+
+<span>
+Free Resources
+</span>
+
+</button>
+
+
+<button
+class="menu-nav-button"
+data-view="gptsView"
+>
+
+<span class="menu-nav-icon">
+🤖
+</span>
+
+<span>
+Specialist GPTs
+</span>
+
+</button>
+
+</nav>
+
+
+<div class="menu-footer">
+
+<p>
+Your daily plan remains the primary workspace.
+</p>
+
+</div>
+
+</aside>
+
+
+
 <main class="main-container">
+
+
+<!-- =========================================
+TODAY VIEW
+========================================= -->
+
+<div
+id="todayView"
+class="app-view active-view"
+>
 
 
 <!-- TODAY OVERVIEW -->
@@ -127,8 +272,10 @@ class="focus-description"
 
 <div class="stat">
 
-<span class="stat-number"
-id="sessionCount">
+<span
+class="stat-number"
+id="sessionCount"
+>
 0
 </span>
 
@@ -240,40 +387,6 @@ class="closeout-checklist"
 
 
 
-<!-- WEEKLY SCHEDULE -->
-
-<section class="large-card">
-
-<div class="section-header">
-
-<div>
-
-<div class="section-kicker">
-WEEKLY SYSTEM
-</div>
-
-<h2>
-Monday–Sunday Development Plan
-</h2>
-
-<p class="section-description">
-Every specialist remains in the system, but not every subject gets equal frequency.
-</p>
-
-</div>
-
-</div>
-
-
-<div
-id="weeklyGrid"
-class="weekly-grid"
-></div>
-
-</section>
-
-
-
 <!-- 12 WEEK PRIORITIES -->
 
 <section class="large-card">
@@ -366,12 +479,112 @@ class="save-message"
 </section>
 
 
+</div>
 
-<!-- FREE RESOURCES -->
 
-<section class="large-card">
 
-<div class="section-header">
+<!-- =========================================
+WEEKLY VIEW
+========================================= -->
+
+<div
+id="weeklyView"
+class="app-view"
+>
+
+<section class="large-card view-card">
+
+<div class="view-top-row">
+
+<div>
+
+<div class="section-kicker">
+WEEKLY SYSTEM
+</div>
+
+<h2>
+Monday–Sunday Development Plan
+</h2>
+
+<p class="section-description">
+See the full weekly schedule and your completion status for each day.
+</p>
+
+</div>
+
+
+<button
+class="secondary-button back-to-today"
+>
+← Today's Plan
+</button>
+
+</div>
+
+
+<div class="status-legend">
+
+<div class="legend-item">
+
+<span class="status-dot complete"></span>
+
+Complete
+
+</div>
+
+
+<div class="legend-item">
+
+<span class="status-dot partial"></span>
+
+In Progress
+
+</div>
+
+
+<div class="legend-item">
+
+<span class="status-dot incomplete"></span>
+
+Not Completed
+
+</div>
+
+
+<div class="legend-item">
+
+<span class="status-dot future"></span>
+
+Upcoming
+
+</div>
+
+</div>
+
+
+<div
+id="weeklyGrid"
+class="weekly-grid weekly-detail-grid"
+></div>
+
+</section>
+
+</div>
+
+
+
+<!-- =========================================
+RESOURCES VIEW
+========================================= -->
+
+<div
+id="resourcesView"
+class="app-view"
+>
+
+<section class="large-card view-card">
+
+<div class="view-top-row">
 
 <div>
 
@@ -389,6 +602,13 @@ Legal, no-cost resources that support your specialist GPTs.
 
 </div>
 
+
+<button
+class="secondary-button back-to-today"
+>
+← Today's Plan
+</button>
+
 </div>
 
 
@@ -399,13 +619,22 @@ class="resources-grid"
 
 </section>
 
+</div>
 
 
-<!-- GPT LAUNCHPAD -->
 
-<section class="large-card">
+<!-- =========================================
+GPT VIEW
+========================================= -->
 
-<div class="section-header">
+<div
+id="gptsView"
+class="app-view"
+>
+
+<section class="large-card view-card">
+
+<div class="view-top-row">
 
 <div>
 
@@ -423,6 +652,13 @@ Open any specialist directly from the dashboard.
 
 </div>
 
+
+<button
+class="secondary-button back-to-today"
+>
+← Today's Plan
+</button>
+
 </div>
 
 
@@ -432,6 +668,8 @@ class="gpt-grid"
 ></div>
 
 </section>
+
+</div>
 
 
 </main>
