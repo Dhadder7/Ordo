@@ -1,1512 +1,704 @@
-:root {
+<!DOCTYPE html>
+<html lang="en">
 
---background: #0b1018;
+<head>
 
---background-soft: #111925;
+<meta charset="UTF-8">
 
---card: #151f2c;
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
 
---card-light: #1b2735;
+<meta
+name="theme-color"
+content="#101722"
+>
 
---border: #2a394b;
+<title>
+Daniel Development System
+</title>
 
---text: #f4f1e8;
+<link
+rel="stylesheet"
+href="styles.css"
+>
 
---text-soft: #b9c0c9;
+</head>
 
---gold: #d1ad65;
 
---gold-light: #efd28e;
+<body>
 
---green: #72bb8a;
 
---red: #cf7777;
+<header class="app-header">
 
---blue: #7fa9d1;
+<div class="header-inner">
 
---shadow:
-0 12px 34px rgba(0,0,0,.28);
+<div>
 
-}
+<div class="small-title">
+DANIEL DEVELOPMENT SYSTEM
+</div>
 
+<h1>
+Today's Development Plan
+</h1>
 
+<p
+id="dateDisplay"
+class="date-display"
+></p>
 
-* {
+</div>
 
-box-sizing: border-box;
 
-}
+<div class="header-right">
 
+<div class="header-actions">
 
+<div class="day-progress">
 
-html {
+<div class="progress-label-row">
 
-scroll-behavior: smooth;
+<span>
+Today's Progress
+</span>
 
-}
+<strong
+id="progressLabel"
+>
+0%
+</strong>
 
+</div>
 
+<div class="progress-track">
 
-body {
+<div
+id="progressBar"
+class="progress-fill"
+></div>
 
-margin: 0;
+</div>
 
-font-family:
--apple-system,
-BlinkMacSystemFont,
-"Segoe UI",
-Roboto,
-Arial,
-sans-serif;
+</div>
 
-background:
-linear-gradient(
-180deg,
-#091019 0%,
-#101823 45%,
-#0b1018 100%
-);
 
-color: var(--text);
+<button
+id="menuButton"
+class="menu-button"
+aria-label="Open menu"
+aria-expanded="false"
+>
+<span></span>
+<span></span>
+<span></span>
+</button>
 
-line-height: 1.5;
+</div>
 
-}
 
+<button
+id="resetButton"
+class="secondary-button"
+>
+Reset Today
+</button>
 
+</div>
 
-button,
-textarea {
+</div>
 
-font-family: inherit;
+</header>
 
-}
 
 
+<div
+id="menuBackdrop"
+class="menu-backdrop"
+></div>
 
-.app-header {
 
-border-bottom:
-1px solid var(--border);
+<aside
+id="sideMenu"
+class="side-menu"
+aria-hidden="true"
+>
 
-background:
-rgba(10,15,23,.96);
+<div class="side-menu-header">
 
-position: sticky;
+<div>
 
-top: 0;
+<div class="small-title">
+NAVIGATION
+</div>
 
-z-index: 50;
+<h2>
+Development System
+</h2>
 
-backdrop-filter:
-blur(12px);
+</div>
 
-}
 
+<button
+id="closeMenuButton"
+class="menu-close-button"
+aria-label="Close menu"
+>
+×
+</button>
 
+</div>
 
-.header-inner {
 
-max-width: 1180px;
+<nav class="menu-navigation">
 
-margin: auto;
+<button
+class="menu-nav-button active"
+data-view="todayView"
+>
 
-padding:
-24px 24px 20px;
+<span class="menu-nav-icon">
+📋
+</span>
 
-display: flex;
+<span>
+Today's Plan
+</span>
 
-justify-content:
-space-between;
+</button>
 
-align-items:
-center;
 
-gap: 32px;
+<button
+class="menu-nav-button"
+data-view="weeklyView"
+>
 
-}
+<span class="menu-nav-icon">
+🗓️
+</span>
 
+<span>
+Weekly Schedule
+</span>
 
+</button>
 
-.small-title,
-.section-kicker {
 
-color: var(--gold);
+<button
+class="menu-nav-button"
+data-view="resourcesView"
+>
 
-font-size: 12px;
+<span class="menu-nav-icon">
+📚
+</span>
 
-font-weight: 800;
+<span>
+Free Resources
+</span>
 
-letter-spacing: .16em;
+</button>
 
-text-transform:
-uppercase;
 
-}
+<button
+class="menu-nav-button"
+data-view="gptsView"
+>
 
+<span class="menu-nav-icon">
+🤖
+</span>
 
+<span>
+Specialist GPTs
+</span>
 
-h1 {
+</button>
 
-font-size:
-clamp(
-30px,
-5vw,
-46px
-);
+</nav>
 
-line-height: 1.05;
 
-margin:
-5px 0 8px;
+<div class="menu-footer">
 
-}
+<p>
+Your daily plan remains the primary workspace.
+</p>
 
+</div>
 
+</aside>
 
-h2 {
 
-font-size: 25px;
 
-margin:
-4px 0 5px;
+<main class="main-container">
 
-}
 
+<!-- =========================================
+TODAY VIEW
+========================================= -->
 
+<div
+id="todayView"
+class="app-view active-view"
+>
 
-h3 {
 
-margin:
-0;
+<!-- TODAY OVERVIEW -->
 
-font-size: 20px;
+<section class="overview-card">
 
-}
+<div>
 
+<div class="section-kicker">
+TODAY
+</div>
 
+<h2
+id="dayHeading"
+>
+Today's Plan
+</h2>
 
-p {
+<p
+id="dayFocus"
+class="focus-description"
+></p>
 
-margin-top: 0;
+</div>
 
-}
 
+<div class="overview-stats">
 
+<div class="stat">
 
-.date-display,
-.section-description,
-.focus-description {
+<span
+class="stat-number"
+id="sessionCount"
+>
+0
+</span>
 
-color:
-var(--text-soft);
+<span class="stat-label">
+Sessions
+</span>
 
-}
+</div>
 
 
+<div class="stat">
 
-.header-right {
+<span
+class="stat-number"
+id="totalMinutes"
+>
+0
+</span>
 
-min-width: 280px;
+<span class="stat-label">
+Minutes
+</span>
 
-display: flex;
+</div>
 
-flex-direction: column;
 
-gap: 13px;
+<div class="stat">
 
-}
+<span
+class="stat-number"
+id="completedCount"
+>
+0
+</span>
 
+<span class="stat-label">
+Completed
+</span>
 
+</div>
 
-.day-progress {
+</div>
 
-width: 100%;
+</section>
 
-}
 
 
+<!-- PRIORITY BAND -->
 
-.progress-label-row {
+<section
+id="priorityBand"
+class="priority-band"
+></section>
 
-display: flex;
 
-justify-content:
-space-between;
 
-font-size: 13px;
+<!-- TODAY TIMELINE -->
 
-margin-bottom: 7px;
+<section>
 
-}
+<div class="section-header">
 
+<div>
 
+<div class="section-kicker">
+DAILY CURRICULUM
+</div>
 
-.progress-track {
+<h2>
+Exactly What To Do
+</h2>
 
-background: #263346;
+<p class="section-description">
+Work through each session in order. Check off each individual step as you complete it.
+</p>
 
-height: 10px;
+</div>
 
-border-radius:
-999px;
+</div>
 
-overflow: hidden;
 
-}
+<div
+id="timeline"
+class="timeline"
+></div>
 
+</section>
 
 
-.progress-fill {
 
-height: 100%;
+<!-- END OF DAY -->
 
-width: 0;
+<section class="end-day-card">
 
-background:
-linear-gradient(
-90deg,
-#b98a45,
-#efd28e
-);
+<div class="section-kicker">
+END OF DAY
+</div>
 
-transition:
-width .3s ease;
+<h2>
+Daily Closeout
+</h2>
 
-}
+<div
+id="closeoutChecklist"
+class="closeout-checklist"
+></div>
 
+</section>
 
 
-.main-container {
 
-max-width: 1180px;
+<!-- 12 WEEK PRIORITIES -->
 
-margin: auto;
+<section class="large-card">
 
-padding:
-26px 24px 60px;
+<div class="section-header">
 
-}
+<div>
 
+<div class="section-kicker">
+12-WEEK CYCLE
+</div>
 
+<h2>
+Development Priorities
+</h2>
 
-.overview-card,
-.large-card,
-.end-day-card {
+<p class="section-description">
+Concentrate serious effort on 2–3 areas while keeping the others in secondary or maintenance status.
+</p>
 
-border:
-1px solid var(--border);
+</div>
 
-border-radius:
-18px;
+</div>
 
-background:
-rgba(20,30,43,.97);
 
-box-shadow:
-var(--shadow);
+<div class="priority-input-grid">
 
-padding: 24px;
 
-margin-bottom: 22px;
+<div class="priority-input-card primary">
 
-}
+<label for="primaryInput">
+🎯 Primary Development
+</label>
 
+<textarea
+id="primaryInput"
+placeholder="Example: German, Army/Signal, Martial Arts"
+></textarea>
 
+</div>
 
-.overview-card {
 
-display: flex;
+<div class="priority-input-card secondary">
 
-justify-content:
-space-between;
+<label for="secondaryInput">
+🔄 Secondary Development
+</label>
 
-align-items:
-center;
+<textarea
+id="secondaryInput"
+placeholder="Example: History, Music"
+></textarea>
 
-gap: 25px;
+</div>
 
-}
 
+<div class="priority-input-card maintenance">
 
+<label for="maintenanceInput">
+🛠️ Maintenance
+</label>
 
-.focus-description {
+<textarea
+id="maintenanceInput"
+placeholder="Example: Chess, Philosophy, Constitution"
+></textarea>
 
-max-width: 720px;
+</div>
 
-margin-bottom: 0;
 
-}
+</div>
 
 
+<div class="priority-save-row">
 
-.overview-stats {
+<button
+id="savePriorityButton"
+class="primary-button"
+>
+Save 12-Week Priorities
+</button>
 
-display: flex;
+<span
+id="prioritySaved"
+class="save-message"
+></span>
 
-gap: 12px;
+</div>
 
-}
+</section>
 
 
+</div>
 
-.stat {
 
-min-width: 90px;
 
-background:
-var(--background-soft);
+<!-- =========================================
+WEEKLY VIEW
+========================================= -->
 
-border:
-1px solid var(--border);
+<div
+id="weeklyView"
+class="app-view"
+>
 
-border-radius:
-12px;
+<section class="large-card view-card">
 
-padding:
-12px 15px;
+<div class="view-top-row">
 
-text-align:
-center;
+<div>
 
-}
+<div class="section-kicker">
+WEEKLY SYSTEM
+</div>
 
+<h2>
+Monday–Sunday Development Plan
+</h2>
 
+<p class="section-description">
+See the full weekly schedule and your completion status for each day.
+</p>
 
-.stat-number {
+</div>
 
-display: block;
 
-font-size: 23px;
+<button
+class="secondary-button back-to-today"
+>
+← Today's Plan
+</button>
 
-font-weight: 800;
+</div>
 
-color:
-var(--gold-light);
 
-}
+<div class="status-legend">
 
+<div class="legend-item">
 
+<span class="status-dot complete"></span>
 
-.stat-label {
+Complete
 
-font-size: 11px;
+</div>
 
-text-transform:
-uppercase;
 
-letter-spacing:
-.08em;
+<div class="legend-item">
 
-color:
-var(--text-soft);
+<span class="status-dot partial"></span>
 
-}
+In Progress
 
+</div>
 
 
-.priority-band {
+<div class="legend-item">
 
-display: grid;
+<span class="status-dot incomplete"></span>
 
-grid-template-columns:
-repeat(3,1fr);
+Not Completed
 
-gap: 10px;
+</div>
 
-margin-bottom: 28px;
 
-}
+<div class="legend-item">
 
+<span class="status-dot future"></span>
 
+Upcoming
 
-.priority-chip {
+</div>
 
-padding:
-12px 14px;
+</div>
 
-border-radius: 12px;
 
-border:
-1px solid var(--border);
+<div
+id="weeklyGrid"
+class="weekly-grid weekly-detail-grid"
+></div>
 
-font-size: 13px;
+</section>
 
-}
+</div>
 
 
 
-.priority-chip strong {
+<!-- =========================================
+RESOURCES VIEW
+========================================= -->
 
-display: block;
+<div
+id="resourcesView"
+class="app-view"
+>
 
-margin-bottom: 3px;
+<section class="large-card view-card">
 
-}
+<div class="view-top-row">
 
+<div>
 
+<div class="section-kicker">
+RESOURCE LIBRARY
+</div>
 
-.priority-chip.primary {
+<h2>
+Free Learning Resources
+</h2>
 
-background:
-rgba(209,173,101,.12);
+<p class="section-description">
+Legal, no-cost resources that support your specialist GPTs.
+</p>
 
-}
+</div>
 
 
+<button
+class="secondary-button back-to-today"
+>
+← Today's Plan
+</button>
 
-.priority-chip.secondary {
+</div>
 
-background:
-rgba(127,169,209,.10);
 
-}
+<div
+id="resourcesGrid"
+class="resources-grid"
+></div>
 
+</section>
 
+</div>
 
-.priority-chip.maintenance {
 
-background:
-rgba(114,187,138,.09);
 
-}
+<!-- =========================================
+GPT VIEW
+========================================= -->
 
+<div
+id="gptsView"
+class="app-view"
+>
 
+<section class="large-card view-card">
 
-.section-header {
+<div class="view-top-row">
 
-display: flex;
+<div>
 
-justify-content:
-space-between;
+<div class="section-kicker">
+SPECIALIST TEAM
+</div>
 
-margin-bottom: 17px;
+<h2>
+GPT Launchpad
+</h2>
 
-}
+<p class="section-description">
+Open any specialist directly from the dashboard.
+</p>
 
+</div>
 
 
-/* TIMELINE */
+<button
+class="secondary-button back-to-today"
+>
+← Today's Plan
+</button>
 
+</div>
 
 
-.timeline {
+<div
+id="gptGrid"
+class="gpt-grid"
+></div>
 
-position: relative;
+</section>
 
-margin-bottom: 27px;
+</div>
 
-}
 
+</main>
 
 
-.timeline::before {
 
-content: "";
+<footer>
 
-position: absolute;
+<div class="footer-inner">
 
-left: 88px;
+<strong>
+SPEAK • REMEMBER • EXPLAIN • SOLVE • ANALYZE • PERFORM • CREATE • TEACH • APPLY
+</strong>
 
-top: 0;
+<p>
+The goal is capability, not simply time spent studying.
+</p>
 
-bottom: 0;
+</div>
 
-width: 2px;
+</footer>
 
-background:
-var(--border);
 
-}
 
+<script src="config.js"></script>
 
+<script src="app.js"></script>
 
-.session-row {
 
-display: grid;
+</body>
 
-grid-template-columns:
-70px 1fr;
-
-gap: 34px;
-
-position: relative;
-
-margin-bottom: 18px;
-
-}
-
-
-
-.session-time {
-
-font-weight: 800;
-
-font-size: 13px;
-
-color:
-var(--gold-light);
-
-text-align: right;
-
-padding-top: 19px;
-
-}
-
-
-
-.session-card {
-
-position: relative;
-
-background:
-var(--card);
-
-border:
-1px solid var(--border);
-
-border-radius:
-17px;
-
-padding: 19px;
-
-box-shadow:
-0 8px 22px rgba(0,0,0,.17);
-
-}
-
-
-
-.session-card::before {
-
-content: "";
-
-width: 12px;
-
-height: 12px;
-
-border-radius: 50%;
-
-background:
-var(--gold);
-
-border:
-3px solid var(--background);
-
-position: absolute;
-
-left: -43px;
-
-top: 22px;
-
-}
-
-
-
-.session-card.session-complete {
-
-border-color:
-rgba(114,187,138,.5);
-
-}
-
-
-
-.session-card.session-complete::before {
-
-background:
-var(--green);
-
-}
-
-
-
-.session-heading {
-
-display: flex;
-
-align-items:
-flex-start;
-
-justify-content:
-space-between;
-
-gap: 15px;
-
-}
-
-
-
-.session-heading-left {
-
-display: flex;
-
-gap: 12px;
-
-align-items:
-center;
-
-}
-
-
-
-.session-icon {
-
-font-size: 29px;
-
-}
-
-
-
-.session-subtitle {
-
-font-size: 13px;
-
-color:
-var(--text-soft);
-
-margin-top: 3px;
-
-}
-
-
-
-.duration-badge {
-
-border:
-1px solid var(--border);
-
-border-radius:
-999px;
-
-padding:
-5px 9px;
-
-font-size: 12px;
-
-color:
-var(--gold-light);
-
-white-space:
-nowrap;
-
-}
-
-
-
-.session-objective {
-
-background:
-var(--background-soft);
-
-border-left:
-3px solid var(--gold);
-
-padding:
-10px 12px;
-
-border-radius:
-0 8px 8px 0;
-
-margin:
-15px 0;
-
-font-size: 14px;
-
-}
-
-
-
-.step-list {
-
-display: grid;
-
-gap: 9px;
-
-}
-
-
-
-.step-item {
-
-display: flex;
-
-align-items:
-flex-start;
-
-gap: 10px;
-
-padding:
-9px 10px;
-
-border:
-1px solid transparent;
-
-border-radius:
-9px;
-
-transition:
-all .15s ease;
-
-}
-
-
-
-.step-item:hover {
-
-background:
-rgba(255,255,255,.025);
-
-border-color:
-var(--border);
-
-}
-
-
-
-.step-item input {
-
-width: 19px;
-
-height: 19px;
-
-min-width: 19px;
-
-margin-top: 2px;
-
-accent-color:
-var(--green);
-
-}
-
-
-
-.step-item.checked {
-
-opacity: .55;
-
-}
-
-
-
-.step-item.checked span {
-
-text-decoration:
-line-through;
-
-}
-
-
-
-.resource-assignment {
-
-margin-top: 15px;
-
-padding: 13px;
-
-border-radius:
-11px;
-
-background:
-rgba(209,173,101,.08);
-
-border:
-1px solid
-rgba(209,173,101,.26);
-
-}
-
-
-
-.resource-assignment strong {
-
-color:
-var(--gold-light);
-
-}
-
-
-
-.resource-assignment a {
-
-color:
-var(--gold-light);
-
-}
-
-
-
-.specialist-box {
-
-margin-top: 15px;
-
-padding: 13px;
-
-border:
-1px solid var(--border);
-
-border-radius:
-11px;
-
-background:
-#0d141e;
-
-}
-
-
-
-.specialist-box-title {
-
-font-size: 12px;
-
-font-weight: 800;
-
-text-transform:
-uppercase;
-
-letter-spacing:
-.09em;
-
-color:
-var(--gold);
-
-margin-bottom: 6px;
-
-}
-
-
-
-.prompt-text {
-
-white-space:
-pre-wrap;
-
-font-family:
-inherit;
-
-font-size: 13px;
-
-color:
-#d9dce1;
-
-margin-bottom: 12px;
-
-}
-
-
-
-.button-row {
-
-display: flex;
-
-flex-wrap: wrap;
-
-gap: 8px;
-
-}
-
-
-
-.primary-button,
-.secondary-button,
-.copy-button,
-.open-button {
-
-border: 0;
-
-border-radius:
-9px;
-
-padding:
-9px 12px;
-
-font-weight: 700;
-
-cursor: pointer;
-
-}
-
-
-
-.primary-button,
-.copy-button {
-
-background:
-var(--gold);
-
-color:
-#111;
-
-}
-
-
-
-.primary-button:hover,
-.copy-button:hover {
-
-background:
-var(--gold-light);
-
-}
-
-
-
-.secondary-button {
-
-background:
-transparent;
-
-color:
-var(--text);
-
-border:
-1px solid var(--border);
-
-}
-
-
-
-.open-button {
-
-background:
-#28364a;
-
-color:
-var(--text);
-
-text-decoration: none;
-
-}
-
-
-
-.open-button:hover {
-
-background:
-#34465f;
-
-}
-
-
-
-.no-link {
-
-font-size: 12px;
-
-color:
-var(--text-soft);
-
-align-self: center;
-
-}
-
-
-
-/* END DAY */
-
-
-
-.closeout-checklist {
-
-display: grid;
-
-gap: 8px;
-
-margin-top: 15px;
-
-}
-
-
-
-.closeout-item {
-
-display: flex;
-
-gap: 10px;
-
-align-items: center;
-
-}
-
-
-
-.closeout-item input {
-
-width: 19px;
-
-height: 19px;
-
-accent-color:
-var(--green);
-
-}
-
-
-
-/* WEEK */
-
-
-
-.weekly-grid {
-
-display: grid;
-
-grid-template-columns:
-repeat(7,1fr);
-
-gap: 9px;
-
-overflow-x:
-auto;
-
-padding-bottom: 5px;
-
-}
-
-
-
-.week-card {
-
-border:
-1px solid var(--border);
-
-border-radius:
-12px;
-
-padding: 12px;
-
-background:
-var(--background-soft);
-
-min-width: 142px;
-
-}
-
-
-
-.week-card.today {
-
-border-color:
-var(--gold);
-
-background:
-rgba(209,173,101,.08);
-
-}
-
-
-
-.week-day {
-
-font-weight: 800;
-
-font-size: 15px;
-
-margin-bottom: 10px;
-
-}
-
-
-
-.week-session {
-
-padding:
-7px 0;
-
-border-top:
-1px solid
-rgba(255,255,255,.05);
-
-font-size: 12px;
-
-}
-
-
-
-.week-time {
-
-color:
-var(--gold-light);
-
-font-weight: 700;
-
-display: block;
-
-}
-
-
-
-.week-gpt {
-
-color:
-var(--text-soft);
-
-}
-
-
-
-/* PRIORITIES */
-
-
-
-.priority-input-grid {
-
-display: grid;
-
-grid-template-columns:
-repeat(3,1fr);
-
-gap: 14px;
-
-}
-
-
-
-.priority-input-card {
-
-border:
-1px solid var(--border);
-
-border-radius:
-12px;
-
-padding: 14px;
-
-background:
-var(--background-soft);
-
-}
-
-
-
-.priority-input-card label {
-
-display: block;
-
-font-weight: 800;
-
-margin-bottom: 9px;
-
-}
-
-
-
-textarea {
-
-width: 100%;
-
-height: 100px;
-
-resize: vertical;
-
-border:
-1px solid var(--border);
-
-background:
-#0b111a;
-
-color:
-var(--text);
-
-border-radius:
-8px;
-
-padding: 10px;
-
-}
-
-
-
-.priority-save-row {
-
-margin-top: 14px;
-
-display: flex;
-
-align-items: center;
-
-gap: 10px;
-
-}
-
-
-
-.save-message {
-
-color:
-var(--green);
-
-}
-
-
-
-/* RESOURCES */
-
-
-
-.resources-grid,
-.gpt-grid {
-
-display: grid;
-
-grid-template-columns:
-repeat(3,1fr);
-
-gap: 12px;
-
-}
-
-
-
-.resource-card,
-.gpt-card {
-
-border:
-1px solid var(--border);
-
-border-radius:
-12px;
-
-padding: 14px;
-
-background:
-var(--background-soft);
-
-}
-
-
-
-.resource-area {
-
-font-size: 12px;
-
-font-weight: 800;
-
-color:
-var(--gold);
-
-margin-bottom: 4px;
-
-}
-
-
-
-.resource-card p {
-
-font-size: 13px;
-
-color:
-var(--text-soft);
-
-}
-
-
-
-.resource-card a,
-.gpt-card a {
-
-color:
-var(--gold-light);
-
-text-decoration: none;
-
-font-weight: 700;
-
-}
-
-
-
-.gpt-icon {
-
-font-size: 27px;
-
-margin-bottom: 6px;
-
-}
-
-
-
-footer {
-
-border-top:
-1px solid var(--border);
-
-background:
-#080d14;
-
-}
-
-
-
-.footer-inner {
-
-max-width: 1180px;
-
-margin: auto;
-
-padding:
-28px 24px;
-
-text-align:
-center;
-
-color:
-var(--text-soft);
-
-font-size: 12px;
-
-}
-
-
-
-.footer-inner strong {
-
-color:
-var(--gold-light);
-
-}
-
-
-
-@media
-(max-width: 850px) {
-
-.header-inner {
-
-flex-direction: column;
-
-align-items:
-stretch;
-
-}
-
-.header-right {
-
-min-width: 0;
-
-}
-
-.overview-card {
-
-flex-direction: column;
-
-align-items:
-stretch;
-
-}
-
-.overview-stats {
-
-justify-content:
-space-between;
-
-}
-
-.priority-band {
-
-grid-template-columns:
-1fr;
-
-}
-
-.priority-input-grid {
-
-grid-template-columns:
-1fr;
-
-}
-
-.resources-grid,
-.gpt-grid {
-
-grid-template-columns:
-1fr 1fr;
-
-}
-
-}
-
-
-
-@media
-(max-width: 600px) {
-
-.main-container {
-
-padding:
-18px 13px 45px;
-
-}
-
-.header-inner {
-
-padding:
-19px 14px;
-
-}
-
-.timeline::before {
-
-left: 14px;
-
-}
-
-.session-row {
-
-grid-template-columns:
-1fr;
-
-padding-left: 34px;
-
-gap: 5px;
-
-}
-
-.session-time {
-
-text-align: left;
-
-padding: 0;
-
-}
-
-.session-card::before {
-
-left: -27px;
-
-top: 19px;
-
-}
-
-.session-heading {
-
-flex-direction: column;
-
-}
-
-.resources-grid,
-.gpt-grid {
-
-grid-template-columns:
-1fr;
-
-}
-
-.overview-stats {
-
-gap: 5px;
-
-}
-
-.stat {
-
-min-width: 0;
-
-flex: 1;
-
-padding:
-10px 5px;
-
-}
-
-}
+</html>
