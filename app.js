@@ -1838,7 +1838,84 @@ const gptIcons = {
 
 
 /* =====================================================
-   DATE / DAILY DATA
+   DATE HELPERS
+===================================================== */
+
+
+function formatDateKey(date) {
+
+const year =
+date.getFullYear();
+
+const month =
+String(
+date.getMonth() + 1
+).padStart(
+2,
+"0"
+);
+
+const day =
+String(
+date.getDate()
+).padStart(
+2,
+"0"
+);
+
+return `${year}-${month}-${day}`;
+
+}
+
+
+
+function getMonday(date) {
+
+const copy =
+new Date(date);
+
+copy.setHours(
+0,
+0,
+0,
+0
+);
+
+const day =
+copy.getDay();
+
+const difference =
+day === 0
+? -6
+: 1 - day;
+
+copy.setDate(
+copy.getDate() + difference
+);
+
+return copy;
+
+}
+
+
+
+function addDays(date,amount) {
+
+const copy =
+new Date(date);
+
+copy.setDate(
+copy.getDate() + amount
+);
+
+return copy;
+
+}
+
+
+
+/* =====================================================
+   CURRENT DATE / DAILY DATA
 ===================================================== */
 
 
@@ -1855,7 +1932,7 @@ schedule[todayNumber];
 
 
 const dateString =
-now.toISOString().slice(0,10);
+formatDateKey(now);
 
 
 const storageKey =
@@ -1919,6 +1996,229 @@ todayData.sessions.reduce(
 (total,item) =>
 total + item.minutes,
 0
+);
+
+
+
+/* =====================================================
+   MENU
+===================================================== */
+
+
+const menuButton =
+document.getElementById(
+"menuButton"
+);
+
+
+const closeMenuButton =
+document.getElementById(
+"closeMenuButton"
+);
+
+
+const sideMenu =
+document.getElementById(
+"sideMenu"
+);
+
+
+const menuBackdrop =
+document.getElementById(
+"menuBackdrop"
+);
+
+
+
+function openMenu() {
+
+sideMenu.classList.add(
+"open"
+);
+
+menuBackdrop.classList.add(
+"open"
+);
+
+document.body.classList.add(
+"menu-open"
+);
+
+menuButton.setAttribute(
+"aria-expanded",
+"true"
+);
+
+sideMenu.setAttribute(
+"aria-hidden",
+"false"
+);
+
+}
+
+
+
+function closeMenu() {
+
+sideMenu.classList.remove(
+"open"
+);
+
+menuBackdrop.classList.remove(
+"open"
+);
+
+document.body.classList.remove(
+"menu-open"
+);
+
+menuButton.setAttribute(
+"aria-expanded",
+"false"
+);
+
+sideMenu.setAttribute(
+"aria-hidden",
+"true"
+);
+
+}
+
+
+
+menuButton.addEventListener(
+"click",
+openMenu
+);
+
+
+
+closeMenuButton.addEventListener(
+"click",
+closeMenu
+);
+
+
+
+menuBackdrop.addEventListener(
+"click",
+closeMenu
+);
+
+
+
+document.addEventListener(
+"keydown",
+event => {
+
+if (
+event.key === "Escape"
+) {
+
+closeMenu();
+
+}
+
+}
+);
+
+
+
+function showView(viewId) {
+
+document.querySelectorAll(
+".app-view"
+).forEach(
+view => {
+
+view.classList.remove(
+"active-view"
+);
+
+}
+);
+
+
+document.getElementById(
+viewId
+).classList.add(
+"active-view"
+);
+
+
+document.querySelectorAll(
+".menu-nav-button"
+).forEach(
+button => {
+
+button.classList.toggle(
+"active",
+button.dataset.view === viewId
+);
+
+}
+);
+
+
+if (
+viewId === "weeklyView"
+) {
+
+renderWeeklySchedule();
+
+}
+
+
+window.scrollTo({
+top: 0,
+behavior: "smooth"
+});
+
+
+closeMenu();
+
+}
+
+
+
+document.querySelectorAll(
+".menu-nav-button"
+).forEach(
+button => {
+
+button.addEventListener(
+"click",
+() => {
+
+showView(
+button.dataset.view
+);
+
+}
+);
+
+}
+);
+
+
+
+document.querySelectorAll(
+".back-to-today"
+).forEach(
+button => {
+
+button.addEventListener(
+"click",
+() => {
+
+showView(
+"todayView"
+);
+
+}
+);
+
+}
 );
 
 
@@ -2479,7 +2779,7 @@ updateProgress();
 
 
 /* =====================================================
-   PROGRESS
+   DAILY PROGRESS
 ===================================================== */
 
 
@@ -2655,6 +2955,266 @@ location.reload();
 
 
 /* =====================================================
+   WEEKLY PROGRESS CALCULATION
+===================================================== */
+
+
+function getTotalTasksForDay(
+dayNumber
+) {
+
+const dayData =
+schedule[
+dayNumber
+];
+
+
+const sessionSteps =
+
+dayData.sessions.reduce(
+(total,currentSession) => {
+
+return (
+total +
+currentSession.steps.length
+);
+
+},
+0
+);
+
+
+return (
+sessionSteps +
+closeoutItems.length
+);
+
+}
+
+
+
+function getCompletedTasksForDate(
+date,
+dayNumber
+) {
+
+const key =
+
+"daniel-development-" +
+formatDateKey(
+date
+);
+
+
+const state =
+
+JSON.parse(
+localStorage.getItem(
+key
+)
+|| "{}"
+);
+
+
+let completed = 0;
+
+
+schedule[
+dayNumber
+].sessions.forEach(
+(currentSession,sessionIndex) => {
+
+
+currentSession.steps.forEach(
+(_,stepIndex) => {
+
+
+const stepKey =
+`s-${sessionIndex}-step-${stepIndex}`;
+
+
+if (
+state[
+stepKey
+] === true
+) {
+
+completed++;
+
+}
+
+}
+);
+
+}
+);
+
+
+closeoutItems.forEach(
+(_,index) => {
+
+
+if (
+state[
+"closeout-" + index
+] === true
+) {
+
+completed++;
+
+}
+
+}
+);
+
+
+return completed;
+
+}
+
+
+
+function getDayStatus(
+date,
+dayNumber
+) {
+
+const todayStart =
+new Date(now);
+
+
+todayStart.setHours(
+0,
+0,
+0,
+0
+);
+
+
+const dateStart =
+new Date(date);
+
+
+dateStart.setHours(
+0,
+0,
+0,
+0
+);
+
+
+const total =
+getTotalTasksForDay(
+dayNumber
+);
+
+
+const completed =
+getCompletedTasksForDate(
+date,
+dayNumber
+);
+
+
+const percentage =
+
+total > 0
+
+? Math.round(
+completed / total * 100
+)
+
+: 0;
+
+
+if (
+dateStart > todayStart
+) {
+
+return {
+
+status:
+"future",
+
+label:
+"Upcoming",
+
+percentage:
+0,
+
+completed,
+total
+
+};
+
+}
+
+
+if (
+percentage === 100
+) {
+
+return {
+
+status:
+"complete",
+
+label:
+"Complete",
+
+percentage,
+
+completed,
+total
+
+};
+
+}
+
+
+if (
+percentage > 0
+) {
+
+return {
+
+status:
+"partial",
+
+label:
+"In Progress",
+
+percentage,
+
+completed,
+total
+
+};
+
+}
+
+
+return {
+
+status:
+"incomplete",
+
+label:
+"Not Completed",
+
+percentage:
+0,
+
+completed,
+total
+
+};
+
+}
+
+
+
+/* =====================================================
    WEEKLY PLAN
 ===================================================== */
 
@@ -2666,22 +3226,90 @@ document.getElementById(
 
 
 
-[
-1,
-2,
-3,
-4,
-5,
-6,
-0
-].forEach(
-dayNumber => {
+function renderWeeklySchedule() {
+
+
+weeklyGrid.innerHTML = "";
+
+
+const monday =
+getMonday(
+now
+);
+
+
+const weekDays = [
+
+{
+scheduleDay: 1,
+offset: 0
+},
+
+{
+scheduleDay: 2,
+offset: 1
+},
+
+{
+scheduleDay: 3,
+offset: 2
+},
+
+{
+scheduleDay: 4,
+offset: 3
+},
+
+{
+scheduleDay: 5,
+offset: 4
+},
+
+{
+scheduleDay: 6,
+offset: 5
+},
+
+{
+scheduleDay: 0,
+offset: 6
+}
+
+];
+
+
+weekDays.forEach(
+item => {
 
 
 const data =
 schedule[
-dayNumber
+item.scheduleDay
 ];
+
+
+const actualDate =
+addDays(
+monday,
+item.offset
+);
+
+
+const status =
+getDayStatus(
+actualDate,
+item.scheduleDay
+);
+
+
+const isToday =
+
+formatDateKey(
+actualDate
+) ===
+formatDateKey(
+now
+);
 
 
 const card =
@@ -2695,7 +3323,7 @@ card.className =
 "week-card" +
 
 (
-dayNumber === todayNumber
+isToday
 ? " today"
 : ""
 );
@@ -2704,22 +3332,22 @@ dayNumber === todayNumber
 const sessions =
 
 data.sessions.map(
-item => `
+sessionItem => `
 
 <div class="week-session">
 
 <span class="week-time">
 
-${item.start}
+${sessionItem.start}
 
 </span>
 
-${item.icon}
-${item.name}
+${sessionItem.icon}
+${sessionItem.name}
 
 <span class="week-gpt">
 
-${item.minutes} min
+${sessionItem.minutes} min
 
 </span>
 
@@ -2729,13 +3357,79 @@ ${item.minutes} min
 ).join("");
 
 
+const dateLabel =
+
+new Intl.DateTimeFormat(
+undefined,
+{
+month:
+"short",
+
+day:
+"numeric"
+}
+).format(
+actualDate
+);
+
+
 card.innerHTML = `
+
+<div class="week-status-row">
+
+<div class="week-status">
+
+<span
+class="status-dot ${status.status}"
+></span>
+
+${status.label}
+
+</div>
+
+<div class="week-progress-percent">
+
+${
+status.status === "future"
+? "—"
+: status.percentage + "%"
+}
+
+</div>
+
+</div>
+
+
+<div class="week-mini-progress">
+
+<div
+class="week-mini-fill ${status.status}"
+style="width:
+${
+status.status === "future"
+? 0
+: status.percentage
+}%;
+"
+></div>
+
+</div>
+
 
 <div class="week-day">
 
 ${data.day}
 
+<br>
+
+<span class="week-gpt">
+
+${dateLabel}
+
+</span>
+
 </div>
+
 
 ${sessions}
 
@@ -2748,6 +3442,12 @@ card
 
 }
 );
+
+}
+
+
+
+renderWeeklySchedule();
 
 
 
