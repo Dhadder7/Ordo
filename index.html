@@ -1,166 +1,466 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111827">
-  <title>Personal Development Dashboard</title>
-  <link rel="stylesheet" href="styles.css">
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+name="theme-color"
+content="#101722"
+>
+
+<title>
+Daniel Development System
+</title>
+
+<link
+rel="stylesheet"
+href="styles.css"
+>
+
 </head>
+
 
 <body>
 
-<header class="topbar">
-  <div>
-    <p class="eyebrow">DOI • Integrated Development System</p>
-    <h1>Personal Development Dashboard</h1>
-    <p id="todayLabel" class="muted"></p>
-  </div>
 
-  <button id="resetDayBtn" class="ghost">Reset Today</button>
+<header class="app-header">
+
+<div class="header-inner">
+
+<div>
+
+<div class="small-title">
+DANIEL DEVELOPMENT SYSTEM
+</div>
+
+<h1>
+Today's Development Plan
+</h1>
+
+<p
+id="dateDisplay"
+class="date-display"
+></p>
+
+</div>
+
+
+<div class="header-right">
+
+<div class="day-progress">
+
+<div class="progress-label-row">
+
+<span>
+Today's Progress
+</span>
+
+<strong
+id="progressLabel"
+>
+0%
+</strong>
+
+</div>
+
+<div class="progress-track">
+
+<div
+id="progressBar"
+class="progress-fill"
+></div>
+
+</div>
+
+</div>
+
+<button
+id="resetButton"
+class="secondary-button"
+>
+Reset Today
+</button>
+
+</div>
+
+</div>
+
 </header>
 
-<main class="layout">
-
-  <section class="panel hero">
-    <div>
-      <h2>🎯 Today's Focus</h2>
-      <p id="focusText"></p>
-    </div>
-
-    <div class="progress-wrap">
-      <div class="progress-meta">
-        <span id="progressText">0 / 0 complete</span>
-        <span id="timeText">0 min</span>
-      </div>
-
-      <div class="progress-bar">
-        <div id="progressFill"></div>
-      </div>
-    </div>
-  </section>
 
 
-  <section class="panel">
-    <h2>📋 Today's Development Checklist</h2>
-    <p class="muted">
-      Complete each activity and check it off.
-      Your progress is saved automatically.
-    </p>
-
-    <div id="todayTasks" class="task-list"></div>
-  </section>
+<main class="main-container">
 
 
-  <section class="panel">
-    <h2>🧠 Retrieval Check</h2>
-    <p class="muted">
-      Retrieval before more input.
-    </p>
+<!-- TODAY OVERVIEW -->
 
-    <div id="retrievalCard" class="retrieval"></div>
-  </section>
+<section class="overview-card">
 
+<div>
 
-  <section class="panel">
-    <h2>📚 Free Resource Library</h2>
+<div class="section-kicker">
+TODAY
+</div>
 
-    <p class="muted">
-      Legal, free learning resources supporting your specialist GPTs.
-    </p>
+<h2
+id="dayHeading"
+>
+Today's Plan
+</h2>
 
-    <div id="resourceGrid" class="resource-grid"></div>
-  </section>
+<p
+id="dayFocus"
+class="focus-description"
+></p>
 
-
-  <section class="panel">
-    <h2>🗓️ Weekly Development Plan</h2>
-
-    <p class="muted">
-      All specialist GPTs are included in the weekly rotation.
-    </p>
-
-    <div id="weekGrid" class="week-grid"></div>
-  </section>
+</div>
 
 
-  <section class="panel">
-    <h2>🧭 12-Week Development Cycle</h2>
+<div class="overview-stats">
 
-    <p class="muted">
-      Concentrate serious effort on 2–3 areas while maintaining the others.
-    </p>
+<div class="stat">
 
-    <div class="priority-grid">
+<span class="stat-number"
+id="sessionCount">
+0
+</span>
 
-      <div>
-        <label for="primaryInput">
-          🎯 Primary Development
-        </label>
+<span class="stat-label">
+Sessions
+</span>
 
-        <textarea
-          id="primaryInput"
-          placeholder="Example: German, Army/Signal, Martial Arts">
-        </textarea>
-      </div>
+</div>
 
 
-      <div>
-        <label for="secondaryInput">
-          🔄 Secondary Development
-        </label>
+<div class="stat">
 
-        <textarea
-          id="secondaryInput"
-          placeholder="Example: History, Music">
-        </textarea>
-      </div>
+<span
+class="stat-number"
+id="totalMinutes"
+>
+0
+</span>
 
+<span class="stat-label">
+Minutes
+</span>
 
-      <div>
-        <label for="maintenanceInput">
-          🛠️ Maintenance
-        </label>
-
-        <textarea
-          id="maintenanceInput"
-          placeholder="Example: Chess, Philosophy, Constitution">
-        </textarea>
-      </div>
-
-    </div>
-
-    <button id="savePrioritiesBtn">
-      Save Priorities
-    </button>
-
-    <span id="savedMsg" class="saved-msg"></span>
-  </section>
+</div>
 
 
-  <section class="panel">
-    <h2>🔗 Specialist GPT Launchpad</h2>
+<div class="stat">
 
-    <p class="muted">
-      Add your Custom GPT links in config.js.
-    </p>
+<span
+class="stat-number"
+id="completedCount"
+>
+0
+</span>
 
-    <div id="gptGrid" class="gpt-grid"></div>
-  </section>
+<span class="stat-label">
+Completed
+</span>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- PRIORITY BAND -->
+
+<section
+id="priorityBand"
+class="priority-band"
+></section>
+
+
+
+<!-- TODAY TIMELINE -->
+
+<section>
+
+<div class="section-header">
+
+<div>
+
+<div class="section-kicker">
+DAILY CURRICULUM
+</div>
+
+<h2>
+Exactly What To Do
+</h2>
+
+<p class="section-description">
+Work through each session in order. Check off each individual step as you complete it.
+</p>
+
+</div>
+
+</div>
+
+
+<div
+id="timeline"
+class="timeline"
+></div>
+
+</section>
+
+
+
+<!-- END OF DAY -->
+
+<section class="end-day-card">
+
+<div class="section-kicker">
+END OF DAY
+</div>
+
+<h2>
+Daily Closeout
+</h2>
+
+<div
+id="closeoutChecklist"
+class="closeout-checklist"
+></div>
+
+</section>
+
+
+
+<!-- WEEKLY SCHEDULE -->
+
+<section class="large-card">
+
+<div class="section-header">
+
+<div>
+
+<div class="section-kicker">
+WEEKLY SYSTEM
+</div>
+
+<h2>
+Monday–Sunday Development Plan
+</h2>
+
+<p class="section-description">
+Every specialist remains in the system, but not every subject gets equal frequency.
+</p>
+
+</div>
+
+</div>
+
+
+<div
+id="weeklyGrid"
+class="weekly-grid"
+></div>
+
+</section>
+
+
+
+<!-- 12 WEEK PRIORITIES -->
+
+<section class="large-card">
+
+<div class="section-header">
+
+<div>
+
+<div class="section-kicker">
+12-WEEK CYCLE
+</div>
+
+<h2>
+Development Priorities
+</h2>
+
+<p class="section-description">
+Concentrate serious effort on 2–3 areas while keeping the others in secondary or maintenance status.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="priority-input-grid">
+
+
+<div class="priority-input-card primary">
+
+<label for="primaryInput">
+🎯 Primary Development
+</label>
+
+<textarea
+id="primaryInput"
+placeholder="Example: German, Army/Signal, Martial Arts"
+></textarea>
+
+</div>
+
+
+<div class="priority-input-card secondary">
+
+<label for="secondaryInput">
+🔄 Secondary Development
+</label>
+
+<textarea
+id="secondaryInput"
+placeholder="Example: History, Music"
+></textarea>
+
+</div>
+
+
+<div class="priority-input-card maintenance">
+
+<label for="maintenanceInput">
+🛠️ Maintenance
+</label>
+
+<textarea
+id="maintenanceInput"
+placeholder="Example: Chess, Philosophy, Constitution"
+></textarea>
+
+</div>
+
+
+</div>
+
+
+<div class="priority-save-row">
+
+<button
+id="savePriorityButton"
+class="primary-button"
+>
+Save 12-Week Priorities
+</button>
+
+<span
+id="prioritySaved"
+class="save-message"
+></span>
+
+</div>
+
+</section>
+
+
+
+<!-- FREE RESOURCES -->
+
+<section class="large-card">
+
+<div class="section-header">
+
+<div>
+
+<div class="section-kicker">
+RESOURCE LIBRARY
+</div>
+
+<h2>
+Free Learning Resources
+</h2>
+
+<p class="section-description">
+Legal, no-cost resources that support your specialist GPTs.
+</p>
+
+</div>
+
+</div>
+
+
+<div
+id="resourcesGrid"
+class="resources-grid"
+></div>
+
+</section>
+
+
+
+<!-- GPT LAUNCHPAD -->
+
+<section class="large-card">
+
+<div class="section-header">
+
+<div>
+
+<div class="section-kicker">
+SPECIALIST TEAM
+</div>
+
+<h2>
+GPT Launchpad
+</h2>
+
+<p class="section-description">
+Open any specialist directly from the dashboard.
+</p>
+
+</div>
+
+</div>
+
+
+<div
+id="gptGrid"
+class="gpt-grid"
+></div>
+
+</section>
+
 
 </main>
 
 
+
 <footer>
-  <p>
-    Measure progress by what you can independently
-    speak, remember, explain, solve, analyze,
-    perform, create, teach, and apply.
-  </p>
+
+<div class="footer-inner">
+
+<strong>
+SPEAK • REMEMBER • EXPLAIN • SOLVE • ANALYZE • PERFORM • CREATE • TEACH • APPLY
+</strong>
+
+<p>
+The goal is capability, not simply time spent studying.
+</p>
+
+</div>
+
 </footer>
 
+
+
 <script src="config.js"></script>
+
 <script src="app.js"></script>
 
+
 </body>
+
 </html>
