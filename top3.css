@@ -1,0 +1,21 @@
+/* Daily Top 3: follows existing ORDO theme, no changes to current components. */
+.ordo-top3 { border-color: rgba(209,173,101,.34); }
+.ordo-top3-heading { display:flex; gap:16px; justify-content:space-between; align-items:flex-start; }
+.ordo-top3-heading .section-description { margin-bottom: 10px; }
+.ordo-top3-heading .secondary-button { white-space:nowrap; }
+.ordo-top3-list { list-style:none; margin:8px 0 17px; padding:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.ordo-top3-item { display:flex; flex-direction:column; gap:7px; padding:16px; min-width:0; background:rgba(209,173,101,.07); border:1px solid rgba(209,173,101,.24); border-radius:12px; }
+.ordo-top3-item strong { color:var(--gold-light); font-size:15px; overflow-wrap:anywhere; }
+.ordo-top3-item span { color:var(--text); font-size:14px; overflow-wrap:anywhere; }
+.ordo-top3-item small { color:var(--text-soft); margin-top:auto; font-size:12px; }
+.ordo-top3-complete { opacity:.65; }
+.ordo-top3-complete strong:before { content:"✓ "; }
+.ordo-top3-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.ordo-top3-message { margin:10px 0 0; color:var(--text-soft); font-size:13px; min-height:1.4em; }
+.ordo-top3-help { border-top:1px solid var(--border); margin-top:15px; padding-top:13px; font-size:14px; color:var(--text-soft); }
+.ordo-top3-help summary { cursor:pointer; color:var(--gold-light); font-weight:700; }
+.ordo-top3-help p { margin:12px 0; }
+.ordo-top3-help ol { padding-left:22px; }
+.ordo-top3-help li { margin:7px 0; }
+.ordo-top3-help a { color:var(--gold-light); }
+@media (max-width:700px) { .ordo-top3-list { grid-template-columns:1fr; } .ordo-top3-heading { flex-direction:column; } }
