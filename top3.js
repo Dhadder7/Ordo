@@ -86,9 +86,27 @@
 
   var selected = loadIndices();
 
+  /* Compact titles for the narrow iPhone Reminders widget.
+     The full objective remains visible in ORDO. */
+  function shortTitle(sessionData) {
+    var labels = {
+      "German Coach": "Practice German",
+      "Bible & Christianity Scholar": "Study the Bible",
+      "Learning, Reading & Knowledge Coach": "Review key learning",
+      "DOI": "Plan next week (DOI)",
+      "Senior Army Leadership & Signal Mentor": "Practice Army leadership",
+      "Martial Arts Coach": "Train martial arts",
+      "Chess Coach": "Practice chess",
+      "Philosophy Mentor": "Analyze philosophy",
+      "Historian & Graduate History Coach": "Write history analysis",
+      "Music Mentor": "Study music",
+      "Constitution & American Government Tutor": "Study the Constitution"
+    };
+    return labels[sessionData.name] || sessionData.name.slice(0, 36);
+  }
+
   function taskTitle(sessionIndex) {
-    var s = day.sessions[sessionIndex];
-    return s.name + " — " + s.objective.replace(/[.]$/, "");
+    return shortTitle(day.sessions[sessionIndex]);
   }
 
   function exportText() {
@@ -111,7 +129,10 @@
     '<ol><li><strong>Split Text</strong>: input = <em>Shortcut Input</em>; separator = New Lines.</li>' +
     '<li><strong>Repeat with Each</strong>: use the Split Text output.</li>' +
     '<li>Inside the loop, <strong>Add New Reminder</strong>: title = <em>Repeat Item</em>, list = <em>Today\'s Top 3</em>.</li></ol>' +
-    '<p>Choose that same Reminders list in your Home Screen widget. Tap <strong>Send to Reminders</strong> each morning; iOS opens your Shortcut to add the three suggestions. Running it again will add duplicates unless you remove the earlier entries. This is a one-way export, not automatic background sync, and completing a reminder does not check off ORDO steps.</p>' +
+    '<p>Choose that list in your Home Screen widget. Use <strong>Send to Reminders</strong> to export ORDO\'s personalized Top 3. Running it again adds duplicates; checking off a reminder does not automatically check off ORDO steps.</p>' +
+    '<details><summary>Optional: automatic morning delivery</summary><p>An iPhone Time of Day automation can run a separate <strong>ORDO Daily Auto</strong> Shortcut every morning. The automatic version downloads one short three-line text file for your current weekday and passes it into your existing <strong>ORDO Top 3</strong> Shortcut.</p>' +
+    '<p><strong>Important:</strong> the automatic feed follows ORDO\'s published weekly curriculum. Because personal 12-week priorities and completion data are stored locally in your browser, the feed cannot see those settings. Use <strong>Send to Reminders</strong> for personalized recommendations. Automatic runs may create duplicates and do not clear earlier tasks. Set the morning automation on your iPhone in Shortcuts.</p>' +
+    '<p>Daily text source: <a href="top3-feed/Monday.txt" target="_blank" rel="noopener">example Monday feed</a>. <a href="AUTO_TOP3_SETUP.md" target="_blank" rel="noopener">Full setup instructions</a>.</p></details>' +
     '<a href="shortcuts://create-shortcut">Open Shortcuts to create it</a></details>';
   anchor.insertAdjacentElement("afterend", section);
 
