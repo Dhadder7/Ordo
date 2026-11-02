@@ -1,0 +1,24 @@
+{
+  "id": "./",
+  "name": "ORDO \u2014 Daily Optimizer",
+  "short_name": "ORDO",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101722",
+  "theme_color": "#101722",
+  "icons": [
+    {
+      "src": "icons/dht-monogram-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/dht-monogram-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
