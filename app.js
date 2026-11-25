@@ -222,6 +222,11 @@ return schedule;
 }
 const ordoSettings=window.ORDOPlus?window.ORDOPlus.settings():null;
 const schedule=ordoSettings?window.ORDOPlus.adapt(buildSchedule(stages),ordoSettings,formatDateKey(new Date())):buildSchedule(stages);
+// Routine time stays in the scheduler but never becomes a daily task.
+function isActionable(s){return !!s.track||["Jim Stoppani workout","Family dinner","Sleep opportunity","Reading","Bedtime reading","Film Index","Weekly review","Priority time"].includes(s.name);}
+function isProtectedAnchor(s){return ["Family dinner","Sleep opportunity"].includes(s.name);}
+function displaySessionName(s){if(s.track==="german")return s.minutes<=15?"German · Anki":s.objective.startsWith("Speaking practice")?"German · Conversation":"German · Nicos Weg";if(s.track==="guitar")return "Guitar";if(s.track==="tang")return "Tang Soo Do";if(s.name==="Sleep opportunity")return "Bedtime / sleep";return s.name;}
+function displayedSteps(s){if(s.name==="Family dinner")return ["Family dinner completed."];if(s.name==="Sleep opportunity")return ["Kept the planned bedtime."];if(s.name==="Jim Stoppani workout")return ["Follow the workout or rest day assigned in Jim Stoppani.","Log the session in Jim Stoppani."];return s.steps;}
 function stepKeyFor(index,step,dayData=todayData){const s=dayData.sessions[index];return "s-"+(s._originalIndex??index)+"-"+(s.track?s.track+"-"+s.stage+"-":"")+(s._variant?s._variant+"-":"")+"step-"+step;}
 function storedSchedule(date){const key=formatDateKey(date), today=formatDateKey(new Date());if(key===today)return schedule;const raw=buildSchedule(normalizeStages(readLocal("ordo-stage-history-"+key,stages)));const history=readLocal("ordo-settings-history-"+key,null);if(!window.ORDOPlus||!ordoSettings)return raw;if(key<today&&!history)return raw;const conf=window.ORDOPlus.clean(history||ordoSettings);return window.ORDOPlus.adapt(raw,window.ORDOPlus.errors(conf).length?ordoSettings:conf,key);}
 
@@ -583,7 +588,7 @@ document.getElementById(
 "sessionCount"
 ).textContent =
 
-todayData.sessions.length;
+todayData.sessions.filter(isActionable).length;
 
 
 
@@ -591,7 +596,7 @@ document.getElementById(
 "totalMinutes"
 ).textContent =
 
-todayData.sessions.filter(item=>item.name!=="Work + breaks" && item.name!=="Sleep opportunity" && !item.start.startsWith("Lunch")).reduce((total,item)=>total+item.minutes,0);
+todayData.sessions.filter(item=>isActionable(item)&&!isProtectedAnchor(item)).reduce((total,item)=>total+item.minutes,0);
 
 
 
@@ -906,7 +911,7 @@ const timeline = document.getElementById("timeline");
 const stagePanel=document.createElement("section");
 stagePanel.className="large-card";
 stagePanel.innerHTML='<div class="section-kicker">MASTERY TRACKS</div><h2>Learning tracks · mastery progression</h2><p class="section-description">Each track advances independently after its assessment. Start at the stage that matches your current skill; repeat when needed. Changes preserve old checkbox records. German covers all 19 A1 units; guitar and Tang Soo Do each have 12 stages. This is not a promise of fluency or rank.</p><div class="priority-input-grid">'+Object.entries({german:"German · A1",guitar:"Guitar",tang:"Tang Soo Do"}).map(([k,v])=>'<label class="priority-input-card"><strong>'+v+'</strong><select aria-label="'+v+' stage" data-stage="'+k+'" style="width:100%;padding:10px;margin-top:8px;background:#101722;color:#fff;border:1px solid #64748b;border-radius:6px">'+Array.from({length:k==="german"?19:12},(_,i)=>'<option value="'+(i+1)+'" '+(stages[k]===i+1?'selected':'')+'>Stage '+(i+1)+'</option>').join("")+'</select></label>').join("")+'</div><p class="section-description">Next levels: after German stage 19, take an A1 assessment and continue through A2, B1 and B2. After guitar stage 12, move into Grade 2 and blues. Tang Soo Do progresses with qualified instructor feedback.</p><button type="button" class="primary-button" id="saveStages">Apply stages</button><p class="section-description" id="stageFeedback"></p>';
-document.getElementById("priorityBand").insertAdjacentElement("afterend",stagePanel);
+(document.getElementById("curriculumSettings")||document.getElementById("priorityBand").parentElement).appendChild(stagePanel);
 stagePanel.querySelector("#saveStages").addEventListener("click",()=>{const next={};stagePanel.querySelectorAll("[data-stage]").forEach(el=>next[el.dataset.stage]=Number(el.value));localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(normalizeStages(next)));location.reload();});
 const minimum=document.createElement("section");minimum.className="large-card";minimum.innerHTML='<div class="section-kicker">BUSY DAY FALLBACK</div><h2>Minimum viable day</h2><p>Protect sleep, work and family dinner. Use a rest day or shorter session if your Stoppani plan permits. German: 10 minutes of due Anki review, 10 minutes of the current DW lesson, and one spoken sentence. Optional hobbies can wait; never double up at the cost of sleep.</p><p class="section-description">A missed lesson does not advance your stage. Resume it before moving on.</p>';stagePanel.insertAdjacentElement("afterend",minimum);
 const notesPanel=document.createElement("section");notesPanel.className="large-card";
@@ -919,22 +924,22 @@ const notesKey="ordo-practice-log-"+dateString;const noteField=notesPanel.queryS
 
 todayData.sessions.forEach(
 (sessionData,sessionIndex) => {
-
-
+if(!isActionable(sessionData))return;
+const compact=isProtectedAnchor(sessionData);
 const row =
 document.createElement(
 "article"
 );
 
 
-row.className =
-"session-row";
+row.className = "session-row"+(compact?" protected-session":"");
+row.id="ordo-session-"+sessionIndex;
 
 
 
 const stepHTML =
 
-sessionData.steps.map(
+displayedSteps(sessionData).map(
 (step,stepIndex) => {
 
 
@@ -1085,7 +1090,7 @@ ${sessionData.icon}
 
 <h3>
 
-${sessionData.name}
+${displaySessionName(sessionData)}
 
 </h3>
 
@@ -1112,15 +1117,7 @@ ${sessionData.minutes} MIN
 
 
 
-<div class="session-objective">
-
-<strong>
-TODAY'S OBJECTIVE:
-</strong>
-
-${sessionData.objective}
-
-</div>
+${compact?"":`<div class="session-objective"><strong>OBJECTIVE:</strong> ${sessionData.objective}</div>`}
 
 
 
@@ -1136,7 +1133,7 @@ ${resourceHTML}
 
 
 
-${sessionData.prompt && gptURL ? `<div class="specialist-box">
+${sessionData.prompt && gptURL ? `<details class="specialist-box"><summary>Optional coaching prompt</summary>
 
 <div class="specialist-box-title">
 
@@ -1166,7 +1163,7 @@ ${openGPT}
 
 </div>
 
-</div>` : ""}
+</details>` : ""}
 
 </div>
 
@@ -1296,13 +1293,7 @@ original;
 ===================================================== */
 
 
-const closeoutItems = [
-
-"Protected sleep and family time.",
-"Recorded progress or weak material for today’s learning.",
-"Stopped on time; missed hobbies do not become sleep debt."
-
-];
+const closeoutItems = []; // Old closeout entries remain stored, but do not count toward the simplified task list.
 
 
 const closeout =
@@ -1476,6 +1467,7 @@ document.querySelector(
 );
 
 
+if(!card)return;
 const boxes =
 
 Array.from(
@@ -1541,9 +1533,9 @@ return;
 }
 
 
-localStorage.removeItem(
-storageKey
-);
+// Reset the visible tasks only; keep old routine data, other stages and historical notes.
+todayData.sessions.forEach((s,i)=>{if(isActionable(s))displayedSteps(s).forEach((_,j)=>delete savedState[stepKeyFor(i,j)]);});
+saveState();
 
 
 location.reload();
@@ -1570,7 +1562,7 @@ dayData.sessions.reduce(
 
 return (
 total +
-currentSession.steps.length
+(isActionable(currentSession)?displayedSteps(currentSession).length:0)
 );
 
 },
@@ -1618,7 +1610,8 @@ historicalDay.sessions.forEach(
 (currentSession,sessionIndex) => {
 
 
-currentSession.steps.forEach(
+if(!isActionable(currentSession))return;
+displayedSteps(currentSession).forEach(
 (_,stepIndex) => {
 
 
@@ -1913,7 +1906,7 @@ isToday
 
 const sessions =
 
-data.sessions.map(
+data.sessions.filter(isActionable).map(
 sessionItem => `
 
 <div class="week-session">
@@ -1925,7 +1918,7 @@ ${sessionItem.start}
 </span>
 
 ${sessionItem.icon}
-${sessionItem.name}
+${displaySessionName(sessionItem)}
 
 <span class="week-gpt">
 
@@ -2014,6 +2007,7 @@ ${dateLabel}
 
 
 ${sessions}
+<details class="routine-details"><summary>Full schedule & reserved time</summary>${data.sessions.map(s=>`<div class="week-session"><span class="week-time">${s.start}–${s.end}</span><span>${displaySessionName(s)}</span></div>`).join("")}</details>
 
 `;
 
