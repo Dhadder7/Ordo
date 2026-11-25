@@ -45,8 +45,8 @@ function put(v,start,length,steps){if(!v||length<=0)return;const x={...v,start:c
 function seq(v,length,steps){if(!v||length<=0)return;put(v,t,length,steps);t+=length}
 function synthetic(id,name,icon,objective,steps){return {name,icon,objective,steps,_originalIndex:id,prompt:"",resource:null}}
 function spare(until,name="Buffer / free time"){if(until>t)seq(synthetic("buffer-"+t,name,"☕","Keep this margin available.",["Use for family, delays or downtime; no catch-up requirement."]),until-t)}
-function shortReview(v){return ["Review due Anki cards for 10 minutes; say difficult phrases aloud. Do not add new cards unless time remains."]}
-function shortLesson(v){return ["Use the assigned unit and lesson in the objective. Open DW Nicos Weg via the resource link.","Watch or resume the video and exercises for 15 minutes; retrieve three phrases in the final 5 minutes. Record the last completed exercise."]}
+function shortReview(v){return v?.objective.startsWith("Day 1")?v.steps:["Open <a href=\"https://ankiweb.net/decks\" target=\"_blank\" rel=\"noopener\">AnkiWeb Decks ↗</a> → German A1 → tap the deck or Study Now. Say each answer before Show Answer; choose Again or Good. Review for 10 minutes; if the deck is missing, use Day 1 setup."]}
+function shortLesson(v){return [v.steps[0],"Watch or resume the assigned video and exercises for the remaining time; retrieve three phrases in the final 5 minutes. Record the last completed exercise."]}
 const reduced=mode!=="normal";
 const study=items.filter(v=>v.track==="german");
 if(weekday){
@@ -80,7 +80,7 @@ const evening=weekday?items.filter(v=>v.start>="1900"&&v.start<"2100"&&v.name!==
 let skipped=[];
 for(const v of evening){
 const optional=v.track==="guitar"||v.track==="tang"||v.name==="Film Index"||v.name==="Reading"||v.track==="german";
-const keep=!reduced||(mode==="busy"&&(v.track==="guitar"&&d===1||v.track==="tang"&&d===2||v.name==="Film Index"&&d===5));
+const keep=!reduced||(raw[d].focus.startsWith("Day 1:")&&mode==="busy"&&(v.track==="guitar"||v.track==="tang"))||(mode==="busy"&&(v.track==="guitar"&&d===1||v.track==="tang"&&d===2||v.name==="Film Index"&&d===5));
 if(optional&&!keep){skipped.push(v.name);continue}
 const available=stop-t;
 if(v.name==="Film Index"&&available>=75){const n=Math.min(v.minutes,available);seq(v,n,n<v.minutes?["Choose a film or segment of "+n+" minutes or less. Pause at the cutoff and finish another day. Mark seen only when finished."]:null);}
@@ -111,7 +111,7 @@ const mediaAll=()=>mediaOp("readonly",s=>s.getAll());
 const mediaPut=v=>mediaOp("readwrite",s=>s.put(v));
 const mediaDelete=id=>mediaOp("readwrite",s=>s.delete(id));
 const mediaRead=id=>mediaOp("readonly",s=>s.get(id));
-function portableKey(k){return /^(ordo-(routine-v2-|stage-history-|settings-history-|practice-log-|top3-v[12]-|curriculum-stages-v2$|settings-v3$|metrics-v3$)|daniel-development-|daniel-12-week-priorities$)/.test(k)}
+function portableKey(k){return /^(ordo-(routine-v2-|stage-history-|settings-history-|practice-log-|top3-v[12]-|curriculum-stages-v2$|day-one-20261125$|prelaunch-stages-20261125$|settings-v3$|metrics-v3$)|daniel-development-|daniel-12-week-priorities$)/.test(k)}
 function collect(){const data={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(portableKey(k))data[k]=localStorage.getItem(k)}return data}
 function saveFile(value,name,type="application/json"){const url=URL.createObjectURL(new Blob([value],{type})),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}
 function asData(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.readAsDataURL(blob)})}
