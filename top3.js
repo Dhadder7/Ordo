@@ -155,7 +155,7 @@
       item.className = "ordo-top3-item";
       if (count === total) item.classList.add("ordo-top3-complete");
       var title = document.createElement("button");
-      title.type="button";title.className="secondary-button";title.textContent = s.icon + " " + displaySessionName(s)+" →";title.addEventListener("click",function(){showView("todayView");requestAnimationFrame(function(){document.getElementById("ordo-session-"+index)?.scrollIntoView({block:"start",behavior:"smooth"});});});
+      title.type="button";title.className="secondary-button";title.textContent = s.icon + " " + displaySessionName(s)+" →";title.addEventListener("click",function(){showView("todayView");requestAnimationFrame(function(){var activity=document.getElementById("ordo-session-"+index);if(activity){activity.open=true;activity.scrollIntoView({block:"start",behavior:"smooth"});}});});
       var objective = document.createElement("span");
       objective.textContent = s.objective;
       var status = document.createElement("small");
