@@ -45,15 +45,22 @@ const ORDO_STAGE_KEY="ordo-curriculum-stages-v2";
 function readLocal(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch(e){return fallback;}}
 const stageDefaults={german:1,guitar:1,tang:1};
 function normalizeStages(raw){return Object.fromEntries(Object.keys(stageDefaults).map(k=>[k,Math.max(1,Math.min(k==="german"?19:12,Math.floor(Number(raw?.[k])||1)))]));}
-const ORDO_START_MIGRATION="ordo-day-one-20261125";
+const ORDO_START_MIGRATION="ordo-day-one-20261126";
 if(!readLocal(ORDO_START_MIGRATION,false)){
- localStorage.setItem("ordo-prelaunch-stages-20261125",JSON.stringify(normalizeStages(readLocal(ORDO_STAGE_KEY,stageDefaults))));
+ localStorage.setItem("ordo-prelaunch-stages-20261126",JSON.stringify(normalizeStages(readLocal(ORDO_STAGE_KEY,stageDefaults))));
  localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(stageDefaults));
+ localStorage.setItem("ordo-german-a1-position-v1",JSON.stringify({stage:1,day:1,effective:"2026-11-26",previousDay:1}));
  localStorage.setItem(ORDO_START_MIGRATION,"true");
 }
 const stages=normalizeStages(readLocal(ORDO_STAGE_KEY,stageDefaults));
-function programDay(date){return 1+Math.round((Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(2026,10,25))/86400000);}
+function programDay(date){return 1+Math.round((Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(2026,10,26))/86400000);}
 function programLabel(date){const n=programDay(date);return n>0?"Day "+n:"Before Day 1";}
+const GERMAN_POSITION="ordo-german-a1-position-v1";
+function germanDayFor(date,stage){const key=formatDateKey(date),today=formatDateKey(new Date());if(key<today){const saved=readLocal("ordo-german-day-history-"+key,null);if(saved?.stage===stage)return saved.day;}const p=readLocal(GERMAN_POSITION,null);const current=p?.stage===stage?Math.max(1,Math.min(7,Number(key<p.effective?p.previousDay:p.day)||1)):1;const base=key<p?.effective?p.effective:today;const delta=key>today?Math.max(0,Math.round((Date.parse(key)-Date.parse(base))/86400000)):0;return Math.min(7,current+delta);}
+function queueGermanDay(stage,day){const today=new Date(),next=new Date(today);next.setDate(next.getDate()+1);localStorage.setItem(GERMAN_POSITION,JSON.stringify({stage,day:Math.min(7,day+1),previousDay:day,effective:formatDateKey(next)}));}
+const DW_INTRO_LINKS=["https://learngerman.dw.com/en/hallo/l-37250531","https://learngerman.dw.com/en/kein-problem/l-37251054","https://learngerman.dw.com/en/tsch%C3%BCss/l-37251033","https://learngerman.dw.com/en/von-a-bis-z/l-37256418"];
+const DW_INTRO_PRACTICE=[["Recognize and say basic greetings.","Hallo! | Guten Morgen! | Guten Tag! | Guten Abend!","Say each greeting aloud; match it to a time of day. Greet someone using three different greetings."],["Use simple polite expressions and form short sentences.","Danke! | Bitte! | Entschuldigung! | Kein Problem!","Practice a four-line exchange using a greeting, a thank-you and a polite response."],["Say goodbye and choose an appropriate formal or informal expression.","Tschüss! | Auf Wiedersehen! | Bis bald! | Gute Nacht!","Practice greeting and saying goodbye to a friend, then to someone you do not know."],["Recognize German letter names and spell your name.","Wie schreibt man das? | A, B, C | Ä, Ö, Ü, ß","Listen to the alphabet; repeat it, spell your first and last name aloud, and check unfamiliar letters."]];
+const germanDayTitle=(stage,day)=>day<=4?germanUnits[stage-1][1].split("|")[day-1]:day===5?"Error correction + speaking":day===6?"Unit review + conversation":"Unit mastery assessment";
 const DW="https://learngerman.dw.com/en/nicos-weg/c-36519789", ANKI="https://ankiweb.net/", GUITAR="https://www.justinguitar.com/classes/beginner-guitar-course-grade-one", SONGS="https://www.justinguitar.com/songs", BOOK="https://www.amazon.com/dp/0865681708", BOOKTOC="https://www.kriso.lv/tang-soo-do-ultimate-guide-korean-db-9780865681705.html";
 const FORM="https://www.youtube.com/watch?v=b5FzgKp9rg0", FORM2="https://www.youtube.com/watch?v=enGPL_HMtT0", STANCES="https://www.youtube.com/watch?v=IXvCuXaat_M", KICKS="https://www.youtube.com/watch?v=NTFvuSk2rVQ", TERMS="https://tka.cc/promotion/korean-terms/", PENTA="https://www.justinguitar.com/modules/minor-pentatonic-scale";
 const link=(url,label)=>'<a href="'+url+'" target="_blank" rel="noopener noreferrer">'+label+' ↗</a>';
@@ -134,7 +141,8 @@ function germanLesson(day,stage,start,end,minutes){
 const [unit,lessonText,goal]=germanUnits[stage-1], lessons=lessonText.split("|"), n=day-1;
 const core= n>=0&&n<4;
 const title=core?lessons[n]:day===5?"Error correction + speaking":day===6?"Unit review + conversation":"Unit mastery assessment";
-const path="Open "+link(DW,"DW Nicos Weg")+" → A1 → "+unit+" → "+(core?title:"the four lessons in this unit")+". If the lesson is already mastered, use the stage selector to choose the appropriate unit.";
+const lessonUrl=stage===1&&core?DW_INTRO_LINKS[n]:DW;
+const path="Open "+link(lessonUrl,stage===1&&core?title+" — DW A1 lesson":"DW Nicos Weg A1")+"; "+(stage===1&&core?"start directly, or return to Welcome to A1! → "+title:"choose A1 / Beginners → "+unit+" → "+(core?title:"the four lessons in this unit"))+". Select English as the interface language if needed." ;
 let steps=core?[
 "0–3 min: "+path+" Open the lesson video.",
 "3–8 min: watch once without reading the transcript; say what happened in German or English.",
@@ -160,10 +168,10 @@ let steps=core?[
 "55–65 min: write five original sentences; correct after attempting.",
 "65–75 min: record results. Advance only after at least 80% exercise/word accuracy, 4/5 comprehensible sentences and a simple conversation with minimal English. Otherwise repeat this stage. "+(stage===19?"Take the full A1 assessment and start DW A2 only when ready; continue the same study/retrieval cycle.":"")
 ];
-if(stage===1&&day===1)steps[0]="0–3 min: open "+link(DW,"DW Nicos Weg")+" → A1 → Welcome to A1! → Hallo! (first lesson). Sign in or create a free DW account to save progress, or start directly. Tap Play. Alternate video: "+link("https://www.youtube.com/watch?v=dC6ZGLzdaTs","DW episode 1")+".";
+if(stage===1&&core){const [skill,phrases,drill]=DW_INTRO_PRACTICE[n];steps=["0–3 min: "+path+(day===1?" Sign in or create a free DW account to save your progress.":""),"3–8 min: play the clip once; then replay with the transcript/subtitles if needed. Goal: "+skill,"8–20 min: select the next exercise / arrow; attempt each task in order. Use English instructions if available, replay audio when needed, and check answers only after trying.","20–25 min: open the lesson vocabulary and grammar sections; study the examples. Practice: "+phrases+".","25–32 min: "+drill,"32–35 min: close the notes, recall three phrases or letter names aloud, and record the exercise score. Aim for 80%; finish any outstanding exercises before tapping the next-study-day button."];if(day===1)steps[1]+=" Video fallback: "+link("https://www.youtube.com/watch?v=dC6ZGLzdaTs","DW episode 1")+" (return to DW for exercises).";}
 if(minutes===75&&day<=5)steps.push("35–75 min: finish remaining exercises, redo weak tasks, listen again and speak five original sentences. Do not skip ahead just to fill time.");
 if(minutes===35&&day>=6)steps=day===6?["0–5 min: recall ten words from the four lessons without notes.","5–20 min: open "+link(DW,"Nicos Weg")+" → A1 → "+unit+"; revisit missed exercises and note errors.","20–30 min: role-play the unit goal aloud with German Coach.","30–35 min: record your score and one thing to revisit."]:["0–10 min: redo DW unit exercises without hints; record accuracy.","10–20 min: role-play the unit goal with German Coach, aiming for eight exchanges.","20–30 min: write five original sentences, then correct them.","30–35 min: advance only after 80% exercise and recall accuracy, 4/5 comprehensible sentences and a simple conversation with minimal English; otherwise repeat."];
-return S("🇩🇪","German Coach",start,end,minutes,"Stage "+stage+"/19 · "+unit+" · "+title+". Goal: "+goal+".",steps,res("DW Nicos Weg",DW,"Follow the A1 course navigation above. The DW course remains the source of truth."),"Act as my A1 German conversation partner. Unit: "+unit+". Goal: "+goal+". Ask one question at a time in German; let me respond before correcting. End with a score out of 10, three errors to revisit, and a practical next step.","german",stage);}
+return {...S("🇩🇪","German Coach",start,end,minutes,"A1 Beginner · Stage "+stage+"/19 · "+unit+" · "+title+". Goal: "+(stage===1&&core?DW_INTRO_PRACTICE[n][0]:goal+".")+ (day===7?"":" Keep this assignment until completed."),steps,res(core?"Open "+title+" — DW A1":"Open DW A1 course",lessonUrl,"Follow the guided lesson and exercises above. If a direct link fails, open the course overview and select the named lesson."),"Act as my absolute-beginner A1 German conversation partner. Unit: "+unit+". Lesson: "+title+". Goal: "+(stage===1&&core?DW_INTRO_PRACTICE[n][0]:goal)+". Give short examples with English meanings first, then ask one question at a time. Let me respond before correcting. End with a score out of 10 and one practical next step.","german",stage),germanDay:day};}
 function guitar(day,stage,start,end){
 const [module,skill,pairs,gate,song,video,bpm]=guitarWeeks[stage-1];
 const mode={1:"Learn",4:"Technique",6:"Repertoire",0:"Assessment"}[day];
@@ -198,7 +206,7 @@ const schedule={};
 for(let d=0;d<7;d++){
 const weekday=d>=1&&d<=5, a=[];
 const sessionDate=new Date(referenceDate);sessionDate.setDate(sessionDate.getDate()+d-referenceDate.getDay());
-const pd=programDay(sessionDate), first=pd===1, gd=pd>0?((pd-1)%7)+1:(d||7);
+const pd=programDay(sessionDate), first=pd===1, gd=pd>=1?germanDayFor(sessionDate,s.german):((d+3)%7)+1;
 const add=(...args)=>a.push(simple(...args));
 if(weekday){
 add("☀️","Morning setup","0530","0545",15,"Hydrate and get ready to train.",["Get up; hydrate; use restroom; change into training clothes; optional light snack."]);
@@ -578,6 +586,7 @@ formatDateKey(now);
 const storageKey =
 "ordo-routine-v2-" + dateString;
 localStorage.setItem("ordo-stage-history-"+dateString,JSON.stringify(stages));
+if(programDay(now)>=1)localStorage.setItem("ordo-german-day-history-"+dateString,JSON.stringify({stage:stages.german,day:germanDayFor(now,stages.german)}));
 if(ordoSettings)localStorage.setItem("ordo-settings-history-"+dateString,JSON.stringify(ordoSettings));
 
 
@@ -960,8 +969,9 @@ function openTrack(key){
  if(!trackLabels[key])return;
  const host=document.getElementById("trackContent"), stage=stages[key];
  host.innerHTML='<section class="large-card"><div class="section-kicker">CURRENT STAGE</div><h2>'+trackIcons[key]+' '+trackLabels[key]+'</h2><h3>'+trackTitle(key,stage)+'</h3><p class="section-description">Stage '+stage+' of '+trackLimits[key]+'</p><div class="session-objective"><strong>Mastery standard:</strong> '+trackGate(key,stage)+'</div><label>Choose your current stage<select id="trackStageSelect" aria-label="Current stage">'+Array.from({length:trackLimits[key]},(_,i)=>'<option value="'+(i+1)+'" '+(i+1===stage?'selected':'')+'>'+ (i+1)+' · '+trackTitle(key,i+1)+'</option>').join("")+'</select></label><button class="primary-button" id="applyTrackStage">Apply stage</button><p class="section-description">Advance only after the mastery standard is met. Your other tracks and earlier progress remain unchanged.</p></section><section class="large-card"><h2>Scheduled practice this week</h2><div id="trackSessions"></div><p class="section-description">Tap a day to open the complete practice checklist and assigned resources. Future days are previews.</p></section>';
+ if(key==="german"){const panel=host.querySelector(".large-card");const gd=germanDayFor(now,stage);panel.insertAdjacentHTML("afterbegin",'<p class="section-description"><strong>A1 beginner guided path</strong> · Start November 26, 2026. Open Today’s plan to work through the exact DW lesson and use the next-study-day button only when finished. Missed days do not skip lessons.</p><p class="session-objective"><strong>Current assignment:</strong> '+germanDayTitle(stage,gd)+' (study day '+gd+' of 7)</p><p><a href="'+DW+'" target="_blank" rel="noopener">Open Nicos Weg A1 course ↗</a></p>');}
  const chooser=host.querySelector("#trackStageSelect");
- host.querySelector("#applyTrackStage").addEventListener("click",()=>{const next=normalizeStages({...stages,[key]:Number(chooser.value)});localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(next));try{sessionStorage.setItem("ordo-return-view","track:"+key);}catch(e){}location.reload();});
+ host.querySelector("#applyTrackStage").addEventListener("click",()=>{const next=normalizeStages({...stages,[key]:Number(chooser.value)});localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(next));if(key==="german"&&next.german!==stages.german)localStorage.setItem(GERMAN_POSITION,JSON.stringify({stage:next.german,day:1,previousDay:1,effective:formatDateKey(new Date())}));try{sessionStorage.setItem("ordo-return-view","track:"+key);}catch(e){}location.reload();});
  const list=host.querySelector("#trackSessions"),monday=getMonday(now);
  for(let i=0;i<7;i++){
   const date=addDays(monday,i),data=storedSchedule(date)[date.getDay()], sessions=data.sessions.filter(s=>s.track===key);
@@ -1003,6 +1013,8 @@ function renderDayActivities(host,date){
   const prompt=s.prompt&&gpt?'<details class="specialist-box"><summary>Optional coaching prompt</summary><div class="prompt-text">'+s.prompt+'</div><div class="button-row"><button class="copy-button" type="button">Copy prompt</button><a class="open-button" href="'+gpt+'" target="_blank" rel="noopener">Open coach ↗</a></div></details>':"";
   row.innerHTML='<summary class="activity-summary"><span class="activity-icon">'+s.icon+'</span><span class="activity-main"><strong>'+displaySessionName(s)+'</strong><small>'+s.start+'–'+s.end+' · '+(s.name==="Sleep opportunity"?(s.minutes/60).toFixed(1)+" hr":s.minutes+" min")+'</small></span><span class="activity-status"></span><span class="activity-chevron" aria-hidden="true">›</span></summary><div class="activity-body">'+(isProtectedAnchor(s)?"":'<div class="session-objective"><strong>Objective:</strong> '+s.objective+'</div>')+'<div class="step-list">'+steps.map((step,j)=>{const k=stepKeyFor(i,j,data),checked=state[k]===true;return '<label class="step-item '+(checked?"checked":"")+'"><input type="checkbox" data-key="'+k+'" '+(checked?"checked ":"")+(editable?"":"disabled")+'><span>'+step+'</span></label>'}).join("")+'</div>'+resource+prompt+'</div>';
   row.querySelectorAll('input[type="checkbox"]').forEach(box=>box.addEventListener("change",()=>{if(!editable)return;state[box.dataset.key]=box.checked;box.closest(".step-item").classList.toggle("checked",box.checked);localStorage.setItem("ordo-routine-v2-"+key,JSON.stringify(state));updateDayCard(row,s,data,i,state);if(isToday)updateProgress();else updateSelectedDayStats(data,state);}));
+  if(isToday&&s.germanDay&&s.germanDay<7&&programDay(date)>=1){const advance=document.createElement("button");advance.type="button";advance.className="primary-button";const position=readLocal(GERMAN_POSITION,null);const queued=position?.stage===s.stage&&position.effective>key&&position.day===s.germanDay+1;advance.textContent=queued?"Next assignment queued for tomorrow":"Finish this assignment · queue next for tomorrow";advance.disabled=queued;advance.addEventListener("click",()=>{if(!confirm("Have you completed the assigned exercises and met the practice target? If not, keep this assignment for your next study day."))return;queueGermanDay(s.stage,s.germanDay);advance.disabled=true;advance.textContent="Next assignment queued for tomorrow";});row.querySelector(".activity-body").appendChild(advance);}
+  if(isToday&&s.germanDay===7){row.querySelector(".activity-body").insertAdjacentHTML("beforeend",'<p class="section-description">If you meet the mastery gate, log the result and advance the German stage from Learning tracks or Performance. Otherwise repeat the assessment; no calendar-based advancement.</p>');}
   const copy=row.querySelector(".copy-button");if(copy)copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(s.prompt);copy.textContent="Copied ✓";}catch(e){copy.textContent="Copy unavailable; select the prompt text."}});
   updateDayCard(row,s,data,i,state);
   host.appendChild(row);
@@ -1014,7 +1026,7 @@ function openWeekDay(date){
  if(key===dateString){showView("todayView");return;}
  const data=storedSchedule(date)[date.getDay()],editable=dayCanEdit(date);
  document.getElementById("selectedDayTitle").textContent=new Intl.DateTimeFormat(undefined,{weekday:"long",month:"long",day:"numeric"}).format(date)+" · "+programLabel(date);
- document.getElementById("selectedDayNote").textContent=key>dateString?"Upcoming plan · preview only. Future lessons follow your current stages.":editable?"Saved day · you can update its checklist.":"Historical preview · no saved curriculum snapshot for this date.";
+ document.getElementById("selectedDayNote").textContent=key>dateString?"Upcoming plan · preview only. German lessons are tentative previews; actual assignments advance only when you confirm completion.":editable?"Saved day · you can update its checklist.":"Historical preview · no saved curriculum snapshot for this date.";
  updateSelectedDayStats(data,dayState(date));
  renderDayActivities(document.getElementById("selectedDayTimeline"),date);document.getElementById("expandSelected").textContent="Expand all";
  renderReservedTime(document.getElementById("selectedDayReserved"),data);
