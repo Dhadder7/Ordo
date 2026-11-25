@@ -220,9 +220,10 @@ schedule[d]={day:days[d],focus:"Protect sleep, dinner and work first. Follow the
 }
 return schedule;
 }
-const schedule=buildSchedule(stages);
-function stepKeyFor(index,step,dayData=todayData){const s=dayData.sessions[index];return "s-"+index+"-"+(s.track?s.track+"-"+s.stage+"-":"")+"step-"+step;}
-function storedSchedule(date){const key=formatDateKey(date);return key===formatDateKey(new Date())?schedule:buildSchedule(normalizeStages(readLocal("ordo-stage-history-"+key,stages)));}
+const ordoSettings=window.ORDOPlus?window.ORDOPlus.settings():null;
+const schedule=ordoSettings?window.ORDOPlus.adapt(buildSchedule(stages),ordoSettings,formatDateKey(new Date())):buildSchedule(stages);
+function stepKeyFor(index,step,dayData=todayData){const s=dayData.sessions[index];return "s-"+(s._originalIndex??index)+"-"+(s.track?s.track+"-"+s.stage+"-":"")+(s._variant?s._variant+"-":"")+"step-"+step;}
+function storedSchedule(date){const key=formatDateKey(date), today=formatDateKey(new Date());if(key===today)return schedule;const raw=buildSchedule(normalizeStages(readLocal("ordo-stage-history-"+key,stages)));const history=readLocal("ordo-settings-history-"+key,null);if(!window.ORDOPlus||!ordoSettings)return raw;if(key<today&&!history)return raw;const conf=window.ORDOPlus.clean(history||ordoSettings);return window.ORDOPlus.adapt(raw,window.ORDOPlus.errors(conf).length?ordoSettings:conf,key);}
 
 
 /* =====================================================
@@ -534,6 +535,7 @@ formatDateKey(now);
 const storageKey =
 "ordo-routine-v2-" + dateString;
 localStorage.setItem("ordo-stage-history-"+dateString,JSON.stringify(stages));
+if(ordoSettings)localStorage.setItem("ordo-settings-history-"+dateString,JSON.stringify(ordoSettings));
 
 
 
@@ -589,7 +591,7 @@ document.getElementById(
 "totalMinutes"
 ).textContent =
 
-todayData.sessions.filter(item=>item.name!=="Work + breaks" && item.name!=="Sleep opportunity").reduce((total,item)=>total+item.minutes,0);
+todayData.sessions.filter(item=>item.name!=="Work + breaks" && item.name!=="Sleep opportunity" && !item.start.startsWith("Lunch")).reduce((total,item)=>total+item.minutes,0);
 
 
 
