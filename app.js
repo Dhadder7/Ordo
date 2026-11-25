@@ -56,7 +56,7 @@ const stages=normalizeStages(readLocal(ORDO_STAGE_KEY,stageDefaults));
 function programDay(date){return 1+Math.round((Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(2026,10,26))/86400000);}
 function programLabel(date){const n=programDay(date);return n>0?"Day "+n:"Before Day 1";}
 const GERMAN_POSITION="ordo-german-a1-position-v1";
-function germanDayFor(date,stage){const key=formatDateKey(date),today=formatDateKey(new Date());if(key<today){const saved=readLocal("ordo-german-day-history-"+key,null);if(saved?.stage===stage)return saved.day;}const p=readLocal(GERMAN_POSITION,null);const current=p?.stage===stage?Math.max(1,Math.min(7,Number(key<p.effective?p.previousDay:p.day)||1)):1;const base=key<p?.effective?p.effective:today;const delta=key>today?Math.max(0,Math.round((Date.parse(key)-Date.parse(base))/86400000)):0;return Math.min(7,current+delta);}
+function germanDayFor(date,stage){const key=formatDateKey(date),today=formatDateKey(new Date());if(key<today){const saved=readLocal("ordo-german-day-history-"+key,null);if(saved?.stage===stage)return saved.day;}const p=readLocal(GERMAN_POSITION,null);const current=p?.stage===stage?Math.max(1,Math.min(7,Number(key<p.effective?p.previousDay:p.day)||1)):1;const base=p?.stage===stage&&p.effective>today?p.effective:today;const delta=key>today?Math.max(0,Math.round((Date.parse(key)-Date.parse(base))/86400000)):0;return Math.min(7,current+delta);}
 function queueGermanDay(stage,day){const today=new Date(),next=new Date(today);next.setDate(next.getDate()+1);localStorage.setItem(GERMAN_POSITION,JSON.stringify({stage,day:Math.min(7,day+1),previousDay:day,effective:formatDateKey(next)}));}
 const DW_INTRO_LINKS=["https://learngerman.dw.com/en/hallo/l-37250531","https://learngerman.dw.com/en/kein-problem/l-37251054","https://learngerman.dw.com/en/tsch%C3%BCss/l-37251033","https://learngerman.dw.com/en/von-a-bis-z/l-37256418"];
 const DW_INTRO_PRACTICE=[["Recognize and say basic greetings.","Hallo! | Guten Morgen! | Guten Tag! | Guten Abend!","Say each greeting aloud; match it to a time of day. Greet someone using three different greetings."],["Use simple polite expressions and form short sentences.","Danke! | Bitte! | Entschuldigung! | Kein Problem!","Practice a four-line exchange using a greeting, a thank-you and a polite response."],["Say goodbye and choose an appropriate formal or informal expression.","Tschüss! | Auf Wiedersehen! | Bis bald! | Gute Nacht!","Practice greeting and saying goodbye to a friend, then to someone you do not know."],["Recognize German letter names and spell your name.","Wie schreibt man das? | A, B, C | Ä, Ö, Ü, ß","Listen to the alphabet; repeat it, spell your first and last name aloud, and check unfamiliar letters."]];
@@ -206,7 +206,7 @@ const schedule={};
 for(let d=0;d<7;d++){
 const weekday=d>=1&&d<=5, a=[];
 const sessionDate=new Date(referenceDate);sessionDate.setDate(sessionDate.getDate()+d-referenceDate.getDay());
-const pd=programDay(sessionDate), first=pd===1, gd=pd>=1?germanDayFor(sessionDate,s.german):((d+3)%7)+1;
+const pd=programDay(sessionDate), first=pd===1, gd=pd>=1?germanDayFor(sessionDate,s.german):Math.max(1,((pd%7)+7)%7+1);
 const add=(...args)=>a.push(simple(...args));
 if(weekday){
 add("☀️","Morning setup","0530","0545",15,"Hydrate and get ready to train.",["Get up; hydrate; use restroom; change into training clothes; optional light snack."]);
