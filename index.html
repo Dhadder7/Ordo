@@ -22,6 +22,9 @@ rel="stylesheet"
 href="styles.css"
 >
 <link rel="stylesheet" href="top3.css">
+<style>
+.plus-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:12px 0}.plus-grid label,#enhancementsRoot form>label,#enhancementsRoot section>label{display:block;color:var(--text-soft);font-size:14px;margin:10px 0}.plus-grid input,.plus-grid select,#enhancementsRoot textarea,#enhancementsRoot form>label input,#enhancementsRoot section>label input[type=file],#ordoMetricFields>label input[type=number]{width:100%;padding:10px;background:var(--background);color:var(--text);border:1px solid var(--border);border-radius:8px;font:inherit;margin-top:5px;min-width:0}#enhancementsRoot textarea{min-height:80px}.plus-inline{display:flex!important;align-items:center;gap:10px}.plus-inline input{width:auto!important;accent-color:var(--gold)}.plus-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.plus-result{border:1px solid var(--border);border-radius:10px;padding:12px;margin:10px 0;overflow-wrap:anywhere}.plus-result p{margin:6px 0;color:var(--text-soft)}.plus-table{overflow-x:auto}.plus-table table{border-collapse:collapse;width:100%;min-width:340px;font-size:14px}.plus-table th,.plus-table td{border-bottom:1px solid var(--border);text-align:left;padding:9px 6px}.plus-table th{color:var(--text-soft)}#enhancementsRoot section{margin-bottom:18px}#enhancementsRoot h3{margin-top:20px}#enhancementsRoot [role=status]{color:var(--gold-light);margin:8px 0}.plus-quick{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}@media(max-width:420px){.plus-grid{grid-template-columns:1fr 1fr;gap:8px}.plus-grid label{font-size:12px}.plus-grid input,.plus-grid select{padding:8px;font-size:16px}.plus-table table{font-size:12px}}
+</style>
 
 <link rel="icon" type="image/png" sizes="32x32" href="icons/dht-monogram-32.png?v=20261102">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/dht-monogram-180.png?v=20261102">
@@ -221,6 +224,7 @@ Specialist GPTs
 
 </button>
 
+<button class="menu-nav-button" data-view="enhancementsView"><span class="menu-nav-icon">📈</span><span>Performance & Settings</span></button>
 </nav>
 
 
@@ -326,6 +330,7 @@ Steps checked
 id="priorityBand"
 class="priority-band"
 ></section>
+<div class="plus-quick"><button class="secondary-button" type="button" onclick="showView('enhancementsView')">Performance & Settings →</button></div>
 
 
 
@@ -651,6 +656,7 @@ class="gpt-grid"
 </div>
 
 
+<div id="enhancementsView" class="app-view"><section class="large-card"><div class="section-kicker">ORDO PLUS</div><h2>Performance & Settings</h2><p class="section-description">Adjust your routine, measure skill development and protect your data.</p><button class="secondary-button back-to-today">← Today’s Plan</button></section><div id="enhancementsRoot"></div></div>
 </main>
 
 
@@ -675,8 +681,9 @@ The goal is capability, not simply time spent studying.
 
 <script src="config.js"></script>
 
-<script src="app.js?v=20261125-ordo2"></script>
-<script src="top3.js?v=20261125-ordo2"></script>
+<script src="ordo-plus.js?v=20261125-ordo3"></script>
+<script src="app.js?v=20261125-ordo3"></script>
+<script src="top3.js?v=20261125-ordo3"></script>
 
 
 </body>
