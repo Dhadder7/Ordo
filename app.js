@@ -39,1595 +39,183 @@ resource
 ===================================================== */
 
 
-const schedule = {
 
-
-/* =======================
-   SUNDAY
-======================= */
-
-0: {
-
-day:
-"Sunday",
-
-focus:
-"Consolidate what you learned, deepen biblical study, and use DOI to determine what actually deserves your attention next week.",
-
-priority:
-{
-primary:
-"Weekly integration",
-secondary:
-"Bible + German retention",
-maintenance:
-"Knowledge consolidation"
-},
-
-sessions: [
-
-
-session(
-
-"🇩🇪",
-
-"German Coach",
-
-"8:00 AM",
-
-"8:20 AM",
-
-20,
-
-"Retrieve the week's German without relying on notes.",
-
-[
-
-"Spend 3 minutes writing every German word or phrase you remember from this week.",
-
-"Choose 10 vocabulary words from the week and say the German meaning aloud before checking yourself.",
-
-"Produce 5 complete German sentences using vocabulary from at least two different lessons.",
-
-"Say the sentences aloud twice, concentrating on pronunciation and rhythm.",
-
-"Open German Coach and complete a short cumulative correction/retrieval test."
-
-],
-
-`Sunday German review.
-
-Test me on the German material I learned this week.
-
-Begin with retrieval.
-
-Do not show the answer before I attempt it.
-
-Include:
-• vocabulary
-• sentence building
-• grammar
-• one short conversation
-
-Identify my 3 weakest items.
-
-End with:
-
-COMPLETED:
-STRENGTHS:
-WEAKNESSES:
-NEEDS REVIEW:
-NEXT STEP:`
-
-),
-
-
-
-session(
-
-"✝️",
-
-"Bible & Christianity Scholar",
-
-"9:00 AM",
-
-"9:30 AM",
-
-30,
-
-"Study one biblical passage deeply enough to explain both its meaning and historical context.",
-
-[
-
-"Read the assigned biblical passage once without commentary.",
-
-"Read it a second time and identify the main claim, event, teaching, or question.",
-
-"Write one sentence explaining what you think the passage means before consulting the GPT.",
-
-"Open Bible & Christianity Scholar and examine literary and historical context.",
-
-"Identify what comes directly from the text versus later Christian tradition or theological interpretation.",
-
-"Answer the GPT's retrieval questions without looking back at the explanation."
-
-],
-
-`Continue my structured Bible and Christianity curriculum.
-
-Choose an appropriate passage for today's lesson.
-
-Teach it using:
-
-TEXT
-PLAIN MEANING
-LITERARY CONTEXT
-HISTORICAL CONTEXT
-AUTHOR/AUDIENCE
-IMPORTANT TERMS
-THEOLOGICAL SIGNIFICANCE
-COMPETING INTERPRETATIONS
-
-Clearly distinguish:
-
-TEXTUAL CLAIM
-CHRISTIAN TRADITION
-HISTORICAL EVIDENCE
-SCHOLARLY CONSENSUS
-DISPUTED CLAIM
-FAITH CLAIM
-
-Then test me with 3 retrieval questions.`,
-
-{
-name:
-"BibleProject Classroom",
-
-url:
-"https://bibleproject.com/classroom/",
-
-assignment:
-"Use the relevant lesson only when the Bible GPT assigns one."
-
+/* ORDO balanced routine — independent mastery-based curriculum stages. */
+const ORDO_STAGE_KEY="ordo-curriculum-stages-v2";
+function readLocal(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch(e){return fallback;}}
+const stageDefaults={german:1,guitar:1,tang:1};
+function normalizeStages(raw){return Object.fromEntries(Object.keys(stageDefaults).map(k=>[k,Math.max(1,Math.min(12,Number(raw?.[k])||1))]));}
+const stages=normalizeStages(readLocal(ORDO_STAGE_KEY,stageDefaults));
+const DW="https://learngerman.dw.com/en/nicos-weg/c-36519789", ANKI="https://apps.ankiweb.net/", GUITAR="https://www.justinguitar.com/classes/beginner-guitar-course-grade-one", SONGS="https://www.justinguitar.com/songs", BOOK="https://www.amazon.com/dp/0865681708", BOOKTOC="https://www.kriso.lv/tang-soo-do-ultimate-guide-korean-db-9780865681705.html";
+const FORM="https://www.youtube.com/watch?v=b5FzgKp9rg0", FORM2="https://www.youtube.com/watch?v=enGPL_HMtT0", STANCES="https://www.youtube.com/watch?v=IXvCuXaat_M", KICKS="https://www.youtube.com/watch?v=NTFvuSk2rVQ", TERMS="https://tka.cc/promotion/korean-terms/", PENTA="https://www.justinguitar.com/modules/minor-pentatonic-scale";
+const link=(url,label)=>'<a href="'+url+'" target="_blank" rel="noopener noreferrer">'+label+' ↗</a>';
+const germanUnits=[
+["Welcome to A1","Hallo!|Kein Problem!|Tschüss!|Von A bis Z","greet someone, say goodbye and spell your name"],
+["Meeting people","Ich heiße Emma|Das ist Nico|Woher kommst du?|Nico hat ein Problem","introduce yourself and someone else; ask where a person comes from"],
+["Contact details","Zahlen von 1 bis 100|Wichtige Nummern|Adressen|Auf dem Amt","say numbers, spell a fictional address and give fictional contact details"],
+["In company","Was machst du hier?|Was trinkst du?|Eine Pizza, bitte!|Zahlen, bitte!","order food and drinks, ask what someone is doing and ask for the bill"],
+["Around the world","Ich war schon in Berlin|Wo liegt das?|In Europa|Andere Länder","describe countries, locations and languages"],
+["Things","Was ist das?|Wem gehört das?|Ich habe kein …|Das Auto ist rot","name objects with articles, express possession and describe colors"],
+["Living","So wohne ich|Meine Wohnung|Sofa, Sessel und Tisch|Unser Haus","describe your home and furniture"],
+["Days and times","Emmas Tag|Tageszeiten|Am Sonntag koche ich|Emmas Wochenende","describe a daily routine and weekend plans"],
+["Appointments","Wie spät ist es?|Hast du morgen Zeit?|Wann spielen wir?|Zu spät?!","tell time and arrange an appointment"],
+["Working life","Ich bin Lehrerin|Mein Beruf|Wo ist der Aufzug?|Traumberufe","describe occupations and ask workplace questions using fictional examples"],
+["Orientation","Wo ist der Bahnhof?|An der Ampel links|Mit Bus und Bahn|Im Büro","ask for and understand simple directions"],
+["Eating and leisure","Lebensmittel|Ich mag (nicht)!|Haushaltsarbeit|Was macht dir Spaß?","talk about food, household chores and hobbies"]
+];
+const guitarWeeks=[
+["Module 0 then Module 1: A and D","A/D chord shapes; tune E A D G B E; pick each string separately","A to D and back","30 clean changes/minute; 8 bars without stopping","Three Little Birds (preview only; practice A and D)", "https://www.youtube.com/watch?v=UY3YEMMFfSs",50],
+["Module 2: rhythm and first riff","E chord, A/D/E transitions; first riff in the course","A-D, D-E, E-A","35 clean changes/minute; steady quarter notes","Three Little Birds", "https://www.youtube.com/watch?v=UY3YEMMFfSs",55],
+["Module 3: minor chords, capo and upstrums","Am, Em, Dm; compare major and minor; slow down-up strums","Am-Em, D-Am, E-Dm","3 clean loops; no pauses between chord changes","Three Little Birds (complete simplified arrangement)", "https://www.youtube.com/watch?v=UY3YEMMFfSs",60],
+["Module 4: metronome and strumming pattern","G chord; steady down-up hand motion; follow module strumming lesson","G-D, G-A, G-E","40 clean changes/minute; 8 bars in time","Bad Moon Rising", "https://www.youtube.com/watch?v=tFPs89WBPuU",60],
+["Module 5: C chord and applied theory","C chord; identify root notes of A, D, E, G and C","C-G, C-Am, C-D","30 clean changes/minute; 3 uninterrupted verse loops","Bad Moon Rising", "https://www.youtube.com/watch?v=tFPs89WBPuU",65],
+["Module 6: 6/8 and alternate picking","Count 1-2-3-4-5-6; alternate pick single strings; distinguish 4/4 and 6/8","G-D, D-Am, G-C","play a 6/8 exercise and 4/4 loop with a steady pulse","Bad Moon Rising (complete simplified arrangement)", "https://www.youtube.com/watch?v=tFPs89WBPuU",70],
+["Module 7: air changes, dynamics, consolidation","Switch shapes in the air; soft/loud control; slow strumming","G-D, D-Am, G-C","40 clean changes/minute; play one full song without stopping","Knockin' on Heaven's Door", "https://www.youtube.com/watch?v=zoPj5Z80AxA",60],
+["Grade 1 consolidation","Review all open chords; mute unwanted strings; play through mistakes","G-D, D-Am, D-C","play two verses and choruses in time","Knockin' on Heaven's Door", "https://www.youtube.com/watch?v=zoPj5Z80AxA",65],
+["Blues introduction: minor pentatonic pattern 1","A minor pentatonic: A C D E G; learn shape from scale lesson; slow alternate picking","A-D, D-E, E-A","3 ascending/descending passes at 60 bpm, clean notes","Knockin' on Heaven's Door (complete)", "https://www.youtube.com/watch?v=zoPj5Z80AxA",60],
+["Blues rhythm: 12-bar framework","Count a simple 12-bar blues in A; use A, D and E; practice chord changes on beat one","A-D, D-E, E-A","3 consecutive 12-bar loops without losing place","Bad Moon Rising (review)", "https://www.youtube.com/watch?v=tFPs89WBPuU",65],
+["Blues phrasing and ear training","Use 3–5 notes from A minor pentatonic; leave space; repeat short phrases","G-D, D-Am, C-G","record 4 short phrases with a consistent beat","Three Little Birds (review)", "https://www.youtube.com/watch?v=UY3YEMMFfSs",65],
+["Performance and consolidation","Review weak chords, scale shape and dynamics; rehearse three songs","Choose the weakest three chord pairs","record 3 complete simplified songs; keep pulse even if imperfect","Knockin' on Heaven's Door (review)", "https://www.youtube.com/watch?v=zoPj5Z80AxA",70]
+];
+const tangWeeks=[
+["Foundations and etiquette","pp. 6–14 (biography/history/lineage); pp. 31–33 (stances); glossary pp. 251–254","read history and identify Moo Duk Kwan lineage; practice ready and front stance","front and horse stance, 3 × 15 seconds per side/position","5 stable transitions and explain 3 terms",STANCES],
+["Stances and controlled movement","pp. 31–33 (stances); pp. 34–38 (beginning of basic movements)","identify front, back and horse stances from photos; practice at comfortable depth","5 slow transitions per side; pause and check alignment","10 controlled transitions without losing balance",STANCES],
+["Hand techniques","pp. 23–30 (hand/foot techniques); pp. 34–44 (basic movements)","find basic punch and low/middle block illustrations; practice slowly in air","2 × 5 repetitions per side for each technique; no contact or locked joints","8 of 10 repetitions controlled; identify start and end positions",STANCES],
+["Front kick fundamentals","pp. 55–61 (kicking techniques; locate front kick illustration)","compare book photos with front-kick reference; supported chamber and return at low height","2 × 5 slow chamber/rechamber per leg; easy low kicks only if comfortable","5 controlled low repetitions on each leg",KICKS],
+["Side kick and roundhouse preparation","pp. 55–61 (locate side and roundhouse kick illustrations)","compare chambers and support-foot movement; practice slowly with support as needed","2 × 5 chambers per side; no high kicks or force","5 balanced chambers per side; stop if painful",KICKS],
+["Footwork and transitions","pp. 31–33; pp. 34–54 (basic movements)","review book stances; practice forward and backward stepping in clear space","3 sets of 4 slow steps; reset between sets","3 clean sets without loss of balance",STANCES],
+["Connect basics","pp. 34–54; pp. 62–65 (forms overview)","review one stance, one basic hand movement and controlled transition; read purpose of forms","3 × 4 slow movements; practice without contact","explain the purpose of forms and complete 3 steady sets",FORM2],
+["Basic Form One: first section","pp. 66–70 (Kee Cho Hyung Il Boo)","follow first few illustrated movements; use book diagrams for direction and sequence","3 slow repetitions of first section, then check photos","perform first section from memory twice",FORM],
+["Basic Form One: remaining sections","pp. 66–70 (Kee Cho Hyung Il Boo)","learn next section in small groups; connect only after each section is comfortable","3 slow repeats of each section and 2 full attempts","complete sequence slowly with at most 2 prompts",FORM],
+["Basic Form One: accuracy","pp. 66–70; compare pp. 31–33","record from front/side if possible; compare stance depth and sequence to book","3 slow whole-form rehearsals; correct just one cue at a time","2 consecutive complete sequences without prompts",FORM2],
+["Basic Form Two: orientation only","pp. 71–75 (Kee Cho Hyung Ee Boo); revisit pp. 66–70","only begin form two if form one gate is met; compare book illustrations with federation resource","3 slow attempts of first section; otherwise repeat form one","explain differences and perform first section twice, or consolidate form one","https://westerntangsoodofederation.org/hyungs-forms/"],
+["Review and instructor feedback","pp. 31–33, 55–61, 66–75; glossary pp. 251–254","record stances and form one; prepare questions for a qualified instructor; no rank claims","repeat 3 full forms with breaks; demonstrate comfortable basics","2 complete controlled form-one performances; note 3 corrections",FORM]
+];
+const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function S(icon,name,start,end,minutes,objective,steps,resource=null,prompt="",track="",stage=0){
+return {icon,name,start,end,minutes,objective,steps,resource,prompt,track,stage};
 }
-
-),
-
-
-
-session(
-
-"🧠",
-
-"Learning, Reading & Knowledge Coach",
-
-"4:00 PM",
-
-"4:20 PM",
-
-20,
-
-"Make this week's learning durable instead of merely familiar.",
-
-[
-
-"Without opening notes, list the subjects you worked on this week.",
-
-"For each subject, write one thing you can now explain or perform better.",
-
-"Identify three things you studied but cannot confidently recall.",
-
-"Open Learning Coach and complete a cumulative retrieval session.",
-
-"Mark each tested concept NEW, WEAK, DEVELOPING, or MASTERED.",
-
-"Write the three WEAK items that should reappear next week."
-
-],
-
-`Run my weekly cumulative retrieval session.
-
-This week may include:
-
-German
-Army/Signal
-Martial Arts
-Chess
-Philosophy
-History
-Constitution
-Bible
-Music
-
-Make me retrieve first.
-
-Do not turn this into another lecture.
-
-Use a mixture of:
-• recall
-• explanation
-• comparison
-• application
-
-Mark important material:
-
-NEW
-WEAK
-DEVELOPING
-MASTERED
-
-At the end tell me the 3 things I most need to review next week.`
-
-),
-
-
-
-session(
-
-"🧭",
-
-"DOI",
-
-"7:00 PM",
-
-"7:20 PM",
-
-20,
-
-"Decide what matters next week and prevent worthwhile goals from competing for unlimited time.",
-
-[
-
-"Review which planned sessions you actually completed.",
-
-"Identify the strongest development area of the week.",
-
-"Identify the weakest or most neglected area.",
-
-"Decide whether missed sessions were caused by time, fatigue, scheduling, difficulty, or low priority.",
-
-"Choose exactly three priorities for next week.",
-
-"Choose at least one worthwhile activity to intentionally deprioritize.",
-
-"Check that the coming week's learning plan fits family, health, work, and other responsibilities."
-
-],
-
-`Guide me through my Sunday DOI weekly review.
-
-Evaluate the past week.
-
-Help me identify:
-
-1. My strongest progress.
-2. My weakest area.
-3. Why I missed anything I intended to complete.
-4. The three highest priorities for next week.
-5. What should remain maintenance.
-6. What I should intentionally deprioritize.
-7. Any conflict between my development goals and family, health, work, or other responsibilities.
-
-Ask:
-
-Is this important, or merely interesting?
-
-What am I giving up by saying yes to this?
-
-Does this support the life I say I want?
-
-What should I stop doing?`
-
-)
-
-]
-
-},
-
-
-
-/* =======================
-   MONDAY
-======================= */
-
-1: {
-
-day:
-"Monday",
-
-focus:
-"Start the week with German consistency and senior-level Army/Signal judgment.",
-
-priority:
-{
-primary:
-"German + Army/Signal",
-secondary:
-"Learning retention",
-maintenance:
-"Everything else"
-},
-
-sessions: [
-
-
-session(
-
-"🇩🇪",
-
-"German Coach",
-
-"6:00 AM",
-
-"6:30 AM",
-
-30,
-
-"Build usable German vocabulary and sentence production.",
-
-[
-
-"Spend 5 minutes retrieving yesterday's German vocabulary without notes.",
-
-"Review 8–10 previously learned nouns using article + noun + plural + meaning.",
-
-"Say each vocabulary item aloud.",
-
-"Learn no more than 5–8 new words or one new grammar concept.",
-
-"Create 5 original sentences using today's material.",
-
-"Say all 5 sentences aloud without reading them if possible.",
-
-"Open German Coach for correction and a short speaking drill."
-
-],
-
-`Start today's 30-minute German lesson.
-
-Use this structure:
-
-1. Retrieval of prior material.
-2. Correct my weak vocabulary.
-3. Teach only a manageable amount of new material.
-4. Make me build German sentences.
-5. Give me a short speaking exercise.
-6. Correct me after I answer.
-
-For nouns always use:
-
-ARTICLE + NOUN + PLURAL + MEANING
-
-Do not show answers before I attempt them.
-
-End with:
-
-COMPLETED:
-STRENGTHS:
-WEAKNESSES:
-NEW MATERIAL:
-NEEDS REVIEW:
-NEXT STEP:`,
-
-{
-name:
-"DW Nicos Weg",
-
-url:
-"https://learngerman.dw.com/en/nicos-weg/c-36519789",
-
-assignment:
-"Complete only the lesson or exercise your German Coach assigns today."
-
+const res=(name,url,assignment)=>({name,url,assignment});
+function germanReview(start,end,minutes,stage){return S("🇩🇪","German Coach",start,end,minutes,"Spaced retrieval — build words you can actually use.",[
+"Open "+link(ANKI,"Anki")+" → German deck → Study Now. Review due cards first (about 20; do not force a quota).",
+"Add up to 3 useful new cards from the current DW unit only; nouns include article, plural and a short sentence.",
+"Say five reviewed phrases aloud; mark difficult items for the next session. Use the full 15 minutes, or stop when due cards are done."
+],null,"","german",stage);}
+function germanLesson(day,stage,start,end,minutes){
+const [unit,lessonText,goal]=germanUnits[stage-1], lessons=lessonText.split("|"), n=day-1;
+const core= n>=0&&n<4;
+const title=core?lessons[n]:day===5?"Error correction + speaking":day===6?"Unit review + conversation":"Unit mastery assessment";
+const path="Open DW → Nicos Weg → A1 → "+unit+" → "+(core?title:"the four lessons in this unit")+". If the lesson is already mastered, use the stage selector to choose the appropriate unit.";
+let steps=core?[
+"0–3 min: "+path+" Open the lesson video.",
+"3–8 min: watch once without reading the transcript; say what happened in German or English.",
+"8–20 min: select the next exercise / arrow and complete the interactive tasks in order. Do not reveal answers until you attempt them.",
+"20–25 min: open the vocabulary and grammar sections; select three useful expressions and note one grammar pattern.",
+"25–32 min: replay the video; shadow three lines aloud, then produce five original sentences connected to "+goal+".",
+"32–35 min: close the lesson and recall five words plus three sentences. Record the exercise score or errors; target 80% on a fresh attempt. Resume unfinished exercises next time rather than rushing."
+]:day===5?[
+"0–5 min: recall ten words from this week's four episodes without notes.",
+"5–15 min: return to missed DW exercises. Reattempt them before checking answers.",
+"15–25 min: role-play the weekly goal with German Coach. Answer in German first; ask for corrections after each turn.",
+"25–35 min: write five corrected sentences and say them aloud. Aim for 8/10 recalled words and 4/5 comprehensible sentences."
+]:day===6?[
+"0–15 min: review Anki due cards; retrieve at least ten words without notes.",
+"15–35 min: revisit all four DW videos; listen first without subtitles, then verify with the transcript.",
+"35–55 min: complete outstanding exercises or repeat weak tasks; review grammar and create eight sentences.",
+"55–70 min: speak with German Coach about the unit goal; complete a 2–3 minute dialogue.",
+"70–75 min: record errors, useful phrases and what to repeat tomorrow."
+]:[
+"0–15 min: review due Anki cards and 15 words sampled from the unit.",
+"15–35 min: redo a selection of DW exercises without hints; record first-attempt accuracy.",
+"35–55 min: role-play the unit goal with German Coach; attempt at least eight exchanges in German.",
+"55–65 min: write five original sentences; correct after attempting.",
+"65–75 min: record results. Advance only after at least 80% exercise/word accuracy, 4/5 comprehensible sentences and a simple conversation with minimal English. Otherwise repeat this stage."
+];
+return S("🇩🇪","German Coach",start,end,minutes,"Stage "+stage+"/12 · "+unit+" · "+title+". Goal: "+goal+".",steps,res("DW Nicos Weg",DW,"Follow the A1 course navigation above. The DW course remains the source of truth."),"Act as my A1 German conversation partner. Unit: "+unit+". Goal: "+goal+". Ask one question at a time in German; let me respond before correcting. End with a score out of 10, three errors to revisit, and a practical next step.","german",stage);}
+function guitar(day,stage,start,end){
+const [module,skill,pairs,gate,song,video,bpm]=guitarWeeks[stage-1];
+const mode={1:"Learn",4:"Technique",6:"Repertoire",0:"Assessment"}[day];
+let steps=[
+"0–5 min: tune to standard tuning; relax hands; pick each string slowly at "+bpm+" bpm.",
+day===1?"5–15 min: open "+link(GUITAR,"JustinGuitar Grade 1")+" → "+module+". Watch the relevant lesson; pause and copy the demonstration. "+skill+".":"5–15 min: revisit the "+module+" demonstration. "+skill+". Practice the weakest movement slowly; use the lesson video rather than guessing.",
+"15–25 min: "+pairs+". Do 3 one-minute change drills with short rests; count only clear chords. "+(stage>=9?"Spend 4 minutes with "+link(PENTA,"minor pentatonic lesson")+" and play one clean note per beat.":"Check fingers and unwanted string noise, then strum steady quarter notes."),
+"25–35 min: "+link(video,song+" tutorial")+". "+(day===1?"Learn one small phrase or section; loop it slowly.":day===4?"Loop the hardest 2–4 bars, then connect the next section.":day===6?"Play verse and chorus together at a manageable speed.":"Record a continuous take of the assigned section or whole song.")+" Use "+link(SONGS,"JustinGuitar song library")+" for chord diagrams and song lessons.",
+"35–40 min: log tempo, clean changes/minute, and song section. "+(day===0?"Mastery gate: "+gate+". If not met, repeat this stage; do not advance simply because the week ended.":"Success today: three steady repetitions with clear notes; slow down when errors recur.")
+];
+return S("🎸","Music Mentor",start,end,40,"Guitar stage "+stage+"/12 · "+mode+" · "+module,steps,res("JustinGuitar course",GUITAR,"Open the module listed above; song and scale links are embedded in the steps."),"Help me troubleshoot guitar stage "+stage+": "+skill+". My target is "+gate+". Ask for my tempo, clean changes, and one problem. Suggest one focused correction, not an entirely new lesson.","guitar",stage);}
+function tang(day,stage,start,end,minutes){
+const [topic,pages,study,drill,gate,video]=tangWeeks[stage-1], mode=day===2?"Learn":day===4?"Reinforce":"Review and assess";
+const short=minutes===30;
+return S("🥋","Martial Arts Coach",start,end,minutes,"Tang Soo Do stage "+stage+"/12 · "+mode+" · "+topic,[
+"0–5 min: clear the floor; gentle mobility and easy stance movements. No contact, forced stretching, high kicks or training through pain.",
+"5–"+(short?10:12)+" min: open Kang Uk Lee's book, "+pages+". "+study+". Match your copy by heading if pagination differs. Book contents source: "+link(BOOKTOC,"ISBN-matched contents")+".",
+(short?"10–20":"12–25")+" min: "+link(video,"assigned technique/form demonstration")+". Watch slowly and compare with the book. "+drill+". Use comfortable range and rest between attempts.",
+(short?"20–25":"25–35")+" min: "+(day===2?"repeat the movement in isolation, then check the start/end positions":day===4?"revisit Tuesday's weakest movement and compare a slow repetition against the pictures":"record a short slow performance and compare the sequence with the book")+"; keep practice non-contact. If video and book differ, follow the book and ask an instructor.",
+(short?"25–30":"35–40")+" min: cool down; log one cue and a short result. "+(day===6?"Mastery gate: "+gate+". Repeat if not met; seek a qualified instructor for technique feedback.":"Target: consistent control before speed. Review "+link(TERMS,"Korean terms")+" for the relevant movement.")
+],res("Tang Soo Do reference book",BOOK,"Use the specified pages; the linked video is a supplementary demonstration, not verified as the identical lineage."),"Help me review "+topic+" using Kang Uk Lee's Tang Soo Do. Do not invent page contents or rank requirements. Ask what I observed in my book, help compare terminology, and suggest one safe correction. Recommend qualified instructor feedback when needed.","tang",stage);}
+function simple(icon,name,start,end,minutes,objective,steps,resource=null){return S(icon,name,start,end,minutes,objective,steps,resource);}
+function buildSchedule(s){
+const schedule={};
+for(let d=0;d<7;d++){
+const weekday=d>=1&&d<=5, a=[];
+const add=(...args)=>a.push(simple(...args));
+if(weekday){
+add("☀️","Morning setup","0530","0545",15,"Hydrate and get ready to train.",["Get up; hydrate; use restroom; change into training clothes; optional light snack."]);
+add("🏋️","Jim Stoppani workout","0545","0715",90,"Reserve 60–90 minutes; follow your selected program, not an ORDO workout.",["Open Jim Stoppani → Today's Workout (or Workouts to select your program). Follow the scheduled session or rest day.","Log the workout in Jim Stoppani. Stop in time to shower; if finished early, use the buffer."],res("Jim Stoppani app (iPhone)","https://apps.apple.com/us/app/jim-stoppani/id399978602","Use your existing app for programming and tracking."));
+add("🚿","Get ready","0715","0745",30,"Shower, grooming, uniform/clothes.",["Shower, dress, and prepare what you need for work."]);
+add("🍳","Breakfast","0745","0805",20,"Eat and prepare for the workday.",["Eat breakfast; pack lunch and essentials if needed."]);
+a.push(germanReview("0805","0820",15,s.german));
+add("🚗","Commute and arrival","0820","0845",25,"12-minute commute plus 13-minute buffer.",["Leave at 0820; aim to arrive at 0832; allow 13 minutes before work."]);
+add("💼","Work + breaks","0845","1630",465,"Work first; lunch study is nested inside the work block.",["During permitted short breaks, optionally spend up to 10 minutes total on Anki/listening; take real breaks too.","Lunch: eat for 25 minutes first. Use the following 35-minute German block only if duty and lunch allow. Extra 0–30 minutes: walk, read, or decompress."]);
+a.push(germanLesson(d,s.german,"Lunch +25","Lunch +60",35));
+add("🚗","Commute home","1630","1642",12,"Leave work and transition home.",["Commute safely; no screen-based study while driving."]);
+add("🏡","Home and dinner prep","1642","1730",48,"Decompress, family time and meal preparation.",["Change clothes, handle urgent household tasks and help prepare dinner."]);
+add("🍽️","Family dinner","1730","1830",60,"Protected family time.",["Eat together without multitasking when possible."]);
+add("🧹","Cleanup / household","1830","1900",30,"Clear the evening for family or hobbies.",["Help clean up, prepare for tomorrow, and handle small chores."]);
+if(d===1){
+a.push(guitar(d,s.guitar,"1900","1940"));
+a.push(S("🇩🇪","German Coach","1940","2010",30,"Speaking practice tied to "+germanUnits[s.german-1][0]+".",["5 min: retrieve five words and phrases from lunch.","20 min: open German Coach; role-play this week's practical goal, answering before corrections.","5 min: repeat corrected sentences and note one weak point."],null,"Practice this A1 topic with me: "+germanUnits[s.german-1][2]+". Ask one question at a time and correct after I answer.","german",s.german));
+add("☕","Free time","2010","2100",50,"Unstructured personal or family time.",["Keep this time open; do not automatically fill it with unfinished sessions."]);
+}else if(d===2){
+a.push(tang(d,s.tang,"1900","1940",40));
+add("📖","Reading","1940","2010",30,"Read the current book.",["Read for 25 minutes; note the page and one key thought for 5 minutes."]);
+add("☕","Free time","2010","2100",50,"Recovery and family time.",["Keep this time open."]);
+}else if(d===4){
+a.push(tang(d,s.tang,"1900","1930",30));
+a.push(guitar(d,s.guitar,"1930","2010"));
+add("☕","Free time","2010","2100",50,"Recovery and family time.",["Keep this time open."]);
+}else{
+add("🎬","Film Index","1900","2100",120,"Watch one unwatched film; protect bedtime.",["Select an unwatched title in Film Index: "+(d===3?"international or art-house cinema":"American classic or entertainment")+". Choose a runtime that fits.","Watch, mark seen and optionally write one sentence about the film. If it runs long, finish on the weekend."]);
 }
-
-),
-
-
-
-session(
-
-"🎖️",
-
-"Senior Army Leadership & Signal Mentor",
-
-"7:00 PM",
-
-"7:40 PM",
-
-40,
-
-"Practice making senior NCO decisions rather than merely memorizing doctrine.",
-
-[
-
-"Read the scenario without looking for the answer.",
-
-"Identify the commander's requirement or mission problem.",
-
-"State what you would do first.",
-
-"Identify what you would personally supervise.",
-
-"Identify what subordinate leaders should own.",
-
-"State how you would verify the action worked.",
-
-"Open Army/Signal Mentor and defend your decision.",
-
-"Write down one doctrinal or leadership lesson you would carry into a real 1SG/Senior Signal role."
-
-],
-
-`Give me a realistic senior Army NCO or tactical Signal problem.
-
-Do not immediately tell me what to do.
-
-Require me to answer:
-
-1. What is the actual problem?
-2. What is my responsibility?
-3. What do I do first?
-4. What do I delegate?
-5. What do I personally supervise?
-6. How do I verify?
-7. What second-order effects should I consider?
-
-Evaluate my response as an experienced senior 25H/25Z NCO preparing for tactical leadership.
-
-Use current Army doctrine when applicable.
-
-Distinguish:
-
-DOCTRINE
-REGULATION
-BEST PRACTICE
-YOUR RECOMMENDATION
-
-End with one practical takeaway.`,
-
-{
-name:
-"Army Publishing Directorate",
-
-url:
-"https://armypubs.army.mil/",
-
-assignment:
-"Read only the doctrinal section specifically assigned by the Army/Signal Mentor."
-
+add("📖","Bedtime reading","2100","2115",15,"Read for pleasure.",["Read 15 minutes; note your page and stop on time."]);
+add("🌙","Bed routine","2115","2130",15,"Prepare for sleep.",["Brush teeth, hygiene, set alarm, put screens away."]);
+add("🛏️","Sleep opportunity","2130","0530",480,"Protect eight hours in bed.",["Aim for lights out at 2130; if you missed a hobby, do not catch up at the expense of sleep."]);
+}else{
+add("☀️","Morning / breakfast","0630","0730",60,"Allow a slightly later weekend start.",["Get ready, eat breakfast, hydrate and spend unhurried time at home."]);
+if(d===6)add("🏋️","Jim Stoppani workout","0730","0900",90,"Follow the scheduled session or rest day.",["Open Jim Stoppani Today's Workout; log there; don't add extra training to make up misses."],res("Jim Stoppani","https://www.jimstoppani.com/","Use the existing workout plan."));
+else add("🚶","Recovery / rest","0730","0900",90,"Keep Sunday gentle and flexible.",["Walk, stretch comfortably, or rest. No mandatory workout."]);
+add("🚿","Shower / reset","0900","0930",30,"Get ready for the day.",["Shower, dress, and transition to study."]);
+a.push(germanLesson(d,s.german,"0930","1045",75));
+add("🏡","Family, errands and lunch","1045","1400",195,"Protected flexible time.",["Make room for lunch, shopping, chores, outings, and unstructured family time."]);
+a.push(guitar(d,s.guitar,"1400","1440"));
+if(d===6)a.push(tang(d,s.tang,"1450","1530",40));
+else add("🗓️","Weekly review","1450","1530",40,"Review outcomes and adjust next week's plan.",["Review German accuracy/conversation, guitar tempo/songs, Tang Soo Do control, and films/books completed.","Use the independent stage selectors only for tracks whose gates are met; otherwise repeat. Identify one change that will make next week easier.","Reserve time for family, chores and any upcoming academic or work obligations; do not sacrifice sleep."]);
+add("📖","Reading","1530","1600",30,"Progress in your current book.",["Read 25 minutes; note your page and one memorable idea."]);
+add("🏡","Flexible family / dinner prep","1600","1730",90,"Keep weekend room for real life.",["Family, errands, downtime and meal preparation."]);
+add("🍽️","Family dinner","1730","1830",60,"Protected family time.",["Eat together when possible."]);
+add("🧹","Cleanup / household","1830","1900",30,"Finish essential tasks.",["Clean up and prepare for tomorrow."]);
+add("🎬","Film Index","1900","2100",120,"Watch one unwatched film; longer films can start earlier.",["Choose "+(d===6?"any unwatched film":"a historically significant film")+". Mark seen in Film Index. Note a takeaway if desired."]);
+add("📖","Bedtime reading","2100","2115",15,"Relax with a book.",["Read for 15 minutes, then stop."]);
+add("🌙","Bed routine","2115","2130",15,"Protect bedtime.",["Hygiene, set alarm, put away screens."]);
+add("🛏️","Sleep opportunity","2130",d===6?"0630":"0530",d===6?540:480,"Protect sleep.",["Lights out at 2130; allow the full sleep window."]);
 }
-
-),
-
-
-
-session(
-
-"🧠",
-
-"Learning, Reading & Knowledge Coach",
-
-"8:00 PM",
-
-"8:10 PM",
-
-10,
-
-"Lock in today's learning before ending the day.",
-
-[
-
-"Without reopening the German lesson, recall three things from it.",
-
-"Explain today's Army/Signal lesson in one paragraph from memory.",
-
-"Identify one thing from either subject you could not recall easily.",
-
-"Mark that item for later retrieval."
-
-],
-
-`Give me a 10-minute retrieval check covering today's learning.
-
-Do not reteach everything.
-
-Ask me to retrieve and explain.
-
-Focus especially on anything I hesitate on.
-
-End by identifying what should be reviewed again.`
-
-)
-
-]
-
-},
-
-
-
-/* =======================
-   TUESDAY
-======================= */
-
-2: {
-
-day:
-"Tuesday",
-
-focus:
-"Combine German with physical skill development and chess calculation.",
-
-priority:
-{
-primary:
-"German + Martial Arts",
-secondary:
-"Chess",
-maintenance:
-"Other intellectual subjects"
-},
-
-sessions: [
-
-
-session(
-
-"🇩🇪",
-
-"German Coach",
-
-"6:00 AM",
-
-"6:30 AM",
-
-30,
-
-"Use German actively rather than recognizing it passively.",
-
-[
-
-"Retrieve 10 words from Monday without looking.",
-
-"Say 5 German sentences from memory.",
-
-"Complete one short listening or reading exercise.",
-
-"Write down 3 phrases you understood directly without translating.",
-
-"Create 5 new sentences using today's language pattern.",
-
-"Have a short conversation with German Coach.",
-
-"Correct and repeat every sentence you initially got wrong."
-
-],
-
-`Continue my German curriculum.
-
-Start by testing Monday's material.
-
-Then give me:
-
-• one short comprehension task
-• one manageable grammar or vocabulary target
-• five sentence-building prompts
-• a short conversation
-
-Make me respond before corrections.
-
-Retest anything I miss.`,
-
-{
-name:
-"DW Nicos Weg",
-
-url:
-"https://learngerman.dw.com/en/nicos-weg/c-36519789",
-
-assignment:
-"Complete the exact exercise assigned by German Coach."
-
+schedule[d]={day:days[d],focus:"Protect sleep, dinner and work first. Follow the next learning assignment at a sustainable pace.",priority:{primary:"Sleep · Family · German",secondary:"Jim Stoppani · Guitar · Tang Soo Do",maintenance:"Reading · Film · Free time"},sessions:a};
 }
-
-),
-
-
-
-session(
-
-"🥋",
-
-"Martial Arts Coach",
-
-"6:30 PM",
-
-"7:10 PM",
-
-40,
-
-"Improve one skill through deliberate physical practice.",
-
-[
-
-"Warm up for 5 minutes with easy mobility and stance movement.",
-
-"Practice today's stance or footwork pattern slowly for 5 minutes.",
-
-"Practice the primary technique for 10 minutes with controlled repetitions.",
-
-"Perform the technique while moving rather than only from a static stance.",
-
-"Perform 3 sets of a short combination incorporating the skill.",
-
-"Visualize or practice the practical application safely.",
-
-"Open Martial Arts Coach and review mechanics and common mistakes.",
-
-"Record the one technical cue you want to remember next session."
-
-],
-
-`Give me one focused martial arts development session.
-
-Tang Soo Do/Soo Bahk Do is primary, but integrate boxing or other striking principles when useful.
-
-Teach only enough technique for deliberate practice.
-
-For today's main technique give me:
-
-NAME
-KOREAN TERM if appropriate and verified
-PURPOSE
-STANCE
-MECHANICS
-TARGET
-COMMON ERRORS
-DRILL
-PRACTICAL APPLICATION
-
-Distinguish:
-
-TRADITIONAL TECHNIQUE
-FORM APPLICATION
-SPORT APPLICATION
-PRACTICAL SELF-DEFENSE
-
-Prioritize timing, distance, balance, and realistic execution.`
-
-),
-
-
-
-session(
-
-"♟️",
-
-"Chess Coach",
-
-"7:30 PM",
-
-"7:50 PM",
-
-20,
-
-"Train the calculation process that prevents impulsive moves and blunders.",
-
-[
-
-"Solve 3 tactical positions without moving pieces immediately.",
-
-"For every position, identify all checks first.",
-
-"Then identify forcing captures.",
-
-"Then identify serious threats.",
-
-"Choose at least two candidate moves.",
-
-"Calculate the opponent's best response.",
-
-"Perform a final blunder check before committing.",
-
-"Open Chess Coach and compare your thinking process with the solution."
-
-],
-
-`Give me a 20-minute chess calculation session.
-
-Use 3 positions appropriate to my level.
-
-For every position force me to follow:
-
-1. What is my opponent threatening?
-2. Candidate moves.
-3. Checks.
-4. Captures.
-5. Threats.
-6. Calculate the forcing line.
-7. Evaluate the resulting position.
-8. Final blunder check.
-
-Do not reveal the best move until I commit to an answer.
-
-Track recurring calculation errors.`,
-
-{
-name:
-"Lichess Practice",
-
-url:
-"https://lichess.org/practice",
-
-assignment:
-"Use only the tactical motif assigned during today's chess session."
-
+return schedule;
 }
-
-)
-
-]
-
-},
-
-
-
-/* =======================
-   WEDNESDAY
-======================= */
-
-3: {
-
-day:
-"Wednesday",
-
-focus:
-"Use German daily while developing philosophical reasoning and graduate-level historical analysis.",
-
-priority:
-{
-primary:
-"German",
-secondary:
-"Philosophy + History",
-maintenance:
-"Professional and physical skills"
-},
-
-sessions: [
-
-
-session(
-
-"🇩🇪",
-
-"German Coach",
-
-"6:00 AM",
-
-"6:30 AM",
-
-30,
-
-"Strengthen weak German from the first half of the week.",
-
-[
-
-"Retrieve Monday and Tuesday vocabulary for 5 minutes.",
-
-"Separate the words into EASY and DIFFICULT.",
-
-"Use every DIFFICULT word in a sentence.",
-
-"Review one grammar concept you have recently struggled with.",
-
-"Write 5 sentences applying that grammar.",
-
-"Say the sentences aloud.",
-
-"Complete a short correction test with German Coach."
-
-],
-
-`Wednesday German session.
-
-Begin by identifying weaknesses from Monday and Tuesday.
-
-Prioritize those weaknesses instead of continually adding new vocabulary.
-
-Require active sentence production.
-
-Make me explain one grammar rule in my own words.
-
-Then test whether I can actually use it.`
-
-),
-
-
-
-session(
-
-"🏛️",
-
-"Philosophy Mentor",
-
-"7:00 PM",
-
-"7:30 PM",
-
-30,
-
-"Understand a philosopher's argument well enough to reconstruct and challenge it.",
-
-[
-
-"Read the question or philosophical problem before reading the explanation.",
-
-"Write your initial answer in 2–3 sentences.",
-
-"Study the philosopher's actual argument.",
-
-"Identify the main claim.",
-
-"Identify at least two premises supporting it.",
-
-"Identify one assumption the argument depends on.",
-
-"State the strongest objection you can think of.",
-
-"Decide whether you accept the argument and explain why."
-
-],
-
-`Continue my broad philosophy curriculum.
-
-Give me one philosopher, argument, or philosophical problem.
-
-Before teaching it, ask for my initial position.
-
-Then analyze:
-
-CLAIM
-PREMISES
-CONCLUSION
-ASSUMPTIONS
-EVIDENCE
-COUNTERARGUMENT
-LOGICAL WEAKNESS
-
-Use Socratic questioning.
-
-Include competing philosophical views rather than treating Stoicism or any other school as automatically correct.
-
-End by making me explain the argument in plain English.`,
-
-{
-name:
-"Stanford Encyclopedia of Philosophy",
-
-url:
-"https://plato.stanford.edu/",
-
-assignment:
-"Read only the section assigned by Philosophy Mentor."
-
-}
-
-),
-
-
-
-session(
-
-"📚",
-
-"Historian & Graduate History Coach",
-
-"7:45 PM",
-
-"8:15 PM",
-
-30,
-
-"Practice historical thinking at the graduate level instead of merely accumulating facts.",
-
-[
-
-"Identify today's historical question before reviewing evidence.",
-
-"State your preliminary answer or hypothesis.",
-
-"Examine the assigned source or evidence.",
-
-"Identify author, audience, purpose, and historical context.",
-
-"Separate what the source actually demonstrates from what you are inferring.",
-
-"Identify one limitation or bias.",
-
-"Compare the evidence against your initial hypothesis.",
-
-"Write a 2–3 sentence historical argument."
-
-],
-
-`Give me a 30-minute graduate-level history exercise.
-
-Use one of:
-
-PRIMARY SOURCE ANALYSIS
-HISTORIOGRAPHY
-CAUSATION
-COMPARISON
-CONTINUITY AND CHANGE
-THESIS DEVELOPMENT
-
-Do not make this primarily a trivia lesson.
-
-Make me state an argument before giving me your analysis.
-
-When using a primary source require:
-
-AUTHOR
-DATE
-AUDIENCE
-PURPOSE
-CONTEXT
-CLAIMS
-BIAS
-LIMITATIONS
-CORROBORATION
-HISTORICAL VALUE
-
-End by evaluating the strength of my historical reasoning.`,
-
-{
-name:
-"Library of Congress",
-
-url:
-"https://www.loc.gov/",
-
-assignment:
-"Use the exact primary source assigned by History Coach."
-
-}
-
-)
-
-]
-
-},
-
-
-
-/* =======================
-   THURSDAY
-======================= */
-
-4: {
-
-day:
-"Thursday",
-
-focus:
-"Build German fluency, practical musicianship, and continued chess sharpness.",
-
-priority:
-{
-primary:
-"German + Music",
-secondary:
-"Chess",
-maintenance:
-"History/Philosophy"
-},
-
-sessions: [
-
-
-session(
-
-"🇩🇪",
-
-"German Coach",
-
-"6:00 AM",
-
-"6:30 AM",
-
-30,
-
-"Convert learned German into spontaneous speaking.",
-
-[
-
-"Speak for 60 seconds in German about your morning or plans.",
-
-"Do not stop to correct every mistake while speaking.",
-
-"Write down 3 things you were unable to say.",
-
-"Learn the vocabulary needed to express those ideas.",
-
-"Repeat the same 60-second explanation.",
-
-"Have German Coach ask 5 follow-up questions.",
-
-"Answer without switching to English unless necessary."
-
-],
-
-`Thursday German conversation session.
-
-Make today's lesson output-heavy.
-
-Have me speak or write first.
-
-Use a practical conversation connected to my interests or daily life.
-
-Ask follow-up questions.
-
-Correct errors after I respond rather than interrupting every sentence.
-
-Identify recurring mistakes and retest them.`
-
-),
-
-
-
-session(
-
-"🎸",
-
-"Music Mentor",
-
-"7:00 PM",
-
-"7:40 PM",
-
-40,
-
-"Develop musicianship by connecting physical playing, rhythm, ear, and theory.",
-
-[
-
-"Spend 5 minutes warming up slowly with a metronome.",
-
-"Practice one rhythm or groove for 10 minutes without increasing tempo until it feels controlled.",
-
-"Practice one guitar or drum technique for 10 minutes.",
-
-"Spend 5 minutes identifying intervals, chords, rhythms, or song structure by ear.",
-
-"Spend 5 minutes connecting today's theory concept to an actual song.",
-
-"Perform or play the musical idea continuously for several measures.",
-
-"Open Music Mentor and evaluate what to fix next."
-
-],
-
-`Give me today's 40-minute music practice session.
-
-My interests include guitar, drums, rock, blues, soul, funk, and especially 1960s–70s music.
-
-Prioritize practical musicianship.
-
-Include:
-
-5 min warmup
-10 min rhythm
-10 min instrument technique
-5 min ear training
-5 min applied theory
-5 min musical application
-
-For every exercise tell me:
-
-PURPOSE
-METHOD
-TIME OR REPS
-TEMPO when relevant
-SUCCESS STANDARD
-
-Do not prioritize speed over timing, groove, dynamics, or musicality.`,
-
-{
-name:
-"musictheory.net",
-
-url:
-"https://www.musictheory.net/lessons",
-
-assignment:
-"Complete only the theory or ear-training lesson assigned today."
-
-}
-
-),
-
-
-
-session(
-
-"♟️",
-
-"Chess Coach",
-
-"8:00 PM",
-
-"8:20 PM",
-
-20,
-
-"Reinforce tactical pattern recognition without abandoning calculation discipline.",
-
-[
-
-"Choose one tactical motif from Tuesday's session.",
-
-"Explain the motif from memory.",
-
-"Solve 3 positions involving that motif.",
-
-"On each position perform the full blunder checklist.",
-
-"Solve one position where the obvious tactical idea does NOT work.",
-
-"Explain why the failed tactic fails."
-
-],
-
-`Give me a 20-minute chess reinforcement session.
-
-Begin with a motif previously trained.
-
-Make me explain the motif before solving.
-
-Use several positions.
-
-Include at least one deceptive position where the obvious tactic fails.
-
-Make me calculate the opponent's best defense.`
-
-)
-
-]
-
-},
-
-
-
-/* =======================
-   FRIDAY
-======================= */
-
-5: {
-
-day:
-"Friday",
-
-focus:
-"Reinforce German, develop Army/Signal planning skill, and practice constitutional reasoning.",
-
-priority:
-{
-primary:
-"German + Army/Signal",
-secondary:
-"Constitution",
-maintenance:
-"Other disciplines"
-},
-
-sessions: [
-
-
-session(
-
-"🇩🇪",
-
-"German Coach",
-
-"6:00 AM",
-
-"6:30 AM",
-
-30,
-
-"Consolidate the week's German before the weekend.",
-
-[
-
-"Retrieve 15 words from the week without looking.",
-
-"Identify the 5 hardest words.",
-
-"Use those 5 words in complete sentences.",
-
-"Explain one grammar concept from the week in your own words.",
-
-"Complete a short real-world scenario in German.",
-
-"Record which material still feels slow or uncertain."
-
-],
-
-`Friday cumulative German lesson.
-
-Test the material from Monday through Thursday.
-
-Include:
-
-vocabulary retrieval
-sentence construction
-grammar application
-short practical conversation
-
-Do not introduce much new material unless the week's material is secure.
-
-Identify what should return during Sunday's review.`
-
-),
-
-
-
-session(
-
-"🎖️",
-
-"Senior Army Leadership & Signal Mentor",
-
-"7:00 PM",
-
-"7:30 PM",
-
-30,
-
-"Develop planning, readiness, supervision, and Signal decision-making.",
-
-[
-
-"Receive today's readiness or communications problem.",
-
-"Identify the required end state.",
-
-"List the information you need before making a decision.",
-
-"Create a short plan.",
-
-"Identify personnel, equipment, training, or communications risks.",
-
-"Create a verification step.",
-
-"State what you would brief the commander.",
-
-"Compare your solution with doctrinal or experienced-NCO considerations."
-
-],
-
-`Give me a 30-minute senior Army/Signal planning problem.
-
-Possible areas:
-
-PACE
-communications architecture
-training management
-maintenance
-readiness
-counseling
-property
-MDMP/TLP
-mission command
-contested communications
-CP communications
-COMSEC
-leader development
-
-Make me build the plan before critiquing it.
-
-Ask what I would:
-
-PLAN
-SUPERVISE
-VERIFY
-ADVISE
-
-Use current authoritative Army sources when doctrine matters.`
-
-),
-
-
-
-session(
-
-"🇺🇸",
-
-"Constitution & American Government Tutor",
-
-"7:45 PM",
-
-"8:15 PM",
-
-30,
-
-"Analyze constitutional issues using structured legal reasoning.",
-
-[
-
-"Read the scenario without seeing the answer.",
-
-"Identify whether government action is involved.",
-
-"Identify the constitutional provision or amendment potentially implicated.",
-
-"State the right, power, or limitation at issue.",
-
-"Apply the facts to the constitutional rule.",
-
-"Identify the strongest argument on the other side.",
-
-"Reach a conclusion.",
-
-"Compare your reasoning with the relevant Supreme Court precedent."
-
-],
-
-`Give me a realistic constitutional law scenario.
-
-Do not tell me which amendment applies at first.
-
-Make me identify it.
-
-Then have me analyze using:
-
-ISSUE
-RULE
-APPLICATION
-COUNTERARGUMENT
-CONCLUSION
-
-After I answer, explain:
-
-CONSTITUTIONAL TEXT
-PLAIN ENGLISH
-RELEVANT DOCTRINE
-LANDMARK CASES
-LIMITATIONS
-CURRENT LEGAL STATUS
-
-Teach me to articulate constitutional issues accurately rather than simply saying something is "unconstitutional."`,
-
-{
-name:
-"Constitution Annotated",
-
-url:
-"https://constitution.congress.gov/",
-
-assignment:
-"Read the constitutional provision or case section assigned by the tutor."
-
-}
-
-)
-
-]
-
-},
-
-
-
-/* =======================
-   SATURDAY
-======================= */
-
-6: {
-
-day:
-"Saturday",
-
-focus:
-"Use the weekend for deeper historical work, biblical study, and lighter German maintenance.",
-
-priority:
-{
-primary:
-"History",
-secondary:
-"Bible",
-maintenance:
-"German"
-},
-
-sessions: [
-
-
-session(
-
-"🇩🇪",
-
-"German Coach",
-
-"8:00 AM",
-
-"8:25 AM",
-
-25,
-
-"Keep German active without turning Saturday into another heavy weekday session.",
-
-[
-
-"Retrieve 10 words from the week.",
-
-"Say 5 complete sentences.",
-
-"Review the week's hardest grammar point.",
-
-"Read or listen to one short German passage.",
-
-"Explain in English what you understood without translating every word.",
-
-"Finish with a 3-minute German conversation."
-
-],
-
-`Give me a light 20-25 minute Saturday German maintenance session.
-
-Prioritize retrieval and practical use.
-
-Do not overload me with new material.
-
-Include:
-• vocabulary recall
-• sentences
-• one short comprehension activity
-• brief conversation`
-
-),
-
-
-
-session(
-
-"📚",
-
-"Historian & Graduate History Coach",
-
-"9:00 AM",
-
-"10:00 AM",
-
-60,
-
-"Complete one substantial piece of graduate-level historical work.",
-
-[
-
-"Define one focused historical question.",
-
-"Write a provisional answer before researching.",
-
-"Examine at least one primary source or a historiographical argument.",
-
-"Take only notes that relate directly to the question.",
-
-"Separate evidence from interpretation.",
-
-"Identify competing explanations.",
-
-"Write a short thesis or analytical paragraph.",
-
-"Ask History Coach to critique the argument for evidence, causation, precision, and historiographical awareness."
-
-],
-
-`Run a 60-minute graduate history workshop.
-
-I want to produce something, not merely consume information.
-
-Choose an appropriate exercise involving:
-
-research
-primary sources
-historiography
-thesis development
-historical writing
-source evaluation
-
-Require me to form an argument.
-
-Evaluate:
-
-THESIS
-EVIDENCE
-LOGIC
-CAUSATION
-CONTEXT
-COUNTERARGUMENT
-HISTORIOGRAPHY
-PRECISION
-
-Never invent quotations, citations, page numbers, authors, archives, or sources.`
-
-),
-
-
-
-session(
-
-"✝️",
-
-"Bible & Christianity Scholar",
-
-"4:00 PM",
-
-"4:40 PM",
-
-40,
-
-"Build a historically informed understanding of Scripture and Christianity.",
-
-[
-
-"Review Sunday's biblical lesson from memory.",
-
-"Identify the main idea before beginning today's lesson.",
-
-"Study today's book, person, event, passage, doctrine, or historical issue.",
-
-"Create a simple timeline when chronology matters.",
-
-"Separate biblical text from later tradition.",
-
-"Identify archaeological or historical evidence when available.",
-
-"Identify what historians can establish versus what remains a faith claim.",
-
-"Answer three cumulative questions without notes."
-
-],
-
-`Give me a deeper Saturday Bible and Christianity session.
-
-Rotate appropriately among:
-
-Scripture
-biblical history
-archaeology
-authorship
-manuscripts
-canon
-historical Jesus
-apostles
-Paul
-early Christianity
-theology
-Christian traditions
-
-Be intellectually fair.
-
-Clearly distinguish:
-
-TEXTUAL CLAIM
-CHRISTIAN TRADITION
-HISTORICAL EVIDENCE
-SCHOLARLY CONSENSUS
-DISPUTED
-FAITH CLAIM
-
-End with cumulative retrieval.`
-
-)
-
-]
-
-}
-
-};
-
+const schedule=buildSchedule(stages);
+function stepKeyFor(index,step,dayData=todayData){const s=dayData.sessions[index];return "s-"+index+"-"+(s.track?s.track+"-"+s.stage+"-":"")+"step-"+step;}
+function storedSchedule(date){const key=formatDateKey(date);return key===formatDateKey(new Date())?schedule:buildSchedule(normalizeStages(readLocal("ordo-stage-history-"+key,stages)));}
 
 
 /* =====================================================
@@ -1636,6 +224,7 @@ End with cumulative retrieval.`
 
 
 const resources = [
+{"area":"GERMAN","name":"Anki","description":"Spaced retrieval and vocabulary.","url":"https://apps.ankiweb.net/"},{"area":"GERMAN","name":"Easy German","description":"Authentic listening practice.","url":"https://www.youtube.com/@EasyGerman"},{"area":"GUITAR","name":"JustinGuitar Grade 1","description":"Structured modules, demonstrations and exercises.","url":"https://www.justinguitar.com/classes/beginner-guitar-course-grade-one"},{"area":"GUITAR","name":"JustinGuitar Songs","description":"Song lessons and chord diagrams.","url":"https://www.justinguitar.com/songs"},{"area":"GUITAR","name":"Minor pentatonic","description":"Scale shapes and blues phrasing.","url":"https://www.justinguitar.com/modules/minor-pentatonic-scale"},{"area":"TANG SOO DO","name":"Kang Uk Lee book contents","description":"ISBN-matched contents and page ranges; verify against your copy.","url":"https://www.kriso.lv/tang-soo-do-ultimate-guide-korean-db-9780865681705.html"},{"area":"TANG SOO DO","name":"Basic Form One tutorial","description":"Supplementary slow form demo; compare with book and instructor.","url":"https://www.youtube.com/watch?v=b5FzgKp9rg0"},{"area":"FITNESS","name":"Jim Stoppani","description":"Workout programming and tracking are handled outside ORDO.","url":"https://www.jimstoppani.com/"},
 
 {
 
@@ -1936,7 +525,8 @@ formatDateKey(now);
 
 
 const storageKey =
-"daniel-development-" + dateString;
+"ordo-routine-v2-" + dateString;
+localStorage.setItem("ordo-stage-history-"+dateString,JSON.stringify(stages));
 
 
 
@@ -1992,11 +582,7 @@ document.getElementById(
 "totalMinutes"
 ).textContent =
 
-todayData.sessions.reduce(
-(total,item) =>
-total + item.minutes,
-0
-);
+todayData.sessions.filter(item=>item.name!=="Work + breaks" && item.name!=="Sleep opportunity").reduce((total,item)=>total+item.minutes,0);
 
 
 
@@ -2307,10 +893,17 @@ JSON.stringify(savedState)
 ===================================================== */
 
 
-const timeline =
-document.getElementById(
-"timeline"
-);
+const timeline = document.getElementById("timeline");
+const stagePanel=document.createElement("section");
+stagePanel.className="large-card";
+stagePanel.innerHTML='<div class="section-kicker">MASTERY TRACKS</div><h2>12-stage learning plan</h2><p class="section-description">Each track advances independently after its assessment. Start at the stage that matches your current skill; repeat when needed. Changes preserve old checkbox records. Stages 1–12 are the initial cycle, not a promise of fluency or rank.</p><div class="priority-input-grid">'+Object.entries({german:"German · A1",guitar:"Guitar",tang:"Tang Soo Do"}).map(([k,v])=>'<label class="priority-input-card"><strong>'+v+'</strong><select aria-label="'+v+' stage" data-stage="'+k+'" style="width:100%;padding:10px;margin-top:8px;background:#101722;color:#fff;border:1px solid #64748b;border-radius:6px">'+Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'" '+(stages[k]===i+1?'selected':'')+'>Stage '+(i+1)+'</option>').join("")+'</select></label>').join("")+'</div><p class="section-description">After stage 12: German continues with A1 Food through Home, then A2/B1/B2; guitar moves into Grade 2 and blues; Tang Soo Do progresses with instructor feedback.</p><button type="button" class="primary-button" id="saveStages">Apply stages</button><p class="section-description" id="stageFeedback"></p>';
+document.getElementById("priorityBand").insertAdjacentElement("afterend",stagePanel);
+stagePanel.querySelector("#saveStages").addEventListener("click",()=>{const next={};stagePanel.querySelectorAll("[data-stage]").forEach(el=>next[el.dataset.stage]=Number(el.value));localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(normalizeStages(next)));location.reload();});
+const notesPanel=document.createElement("section");notesPanel.className="large-card";
+notesPanel.innerHTML='<div class="section-kicker">DAILY RESULTS</div><h2>Practice log</h2><p class="section-description">Record DW score and conversation, guitar tempo / chord changes / song, Tang Soo Do control and instructor questions, book pages and film watched. Saved locally on this device.</p><textarea aria-label="Daily practice notes" id="ordoPracticeNotes" rows="5" style="width:100%;padding:12px;background:#101722;color:#fff;border:1px solid #64748b;border-radius:8px"></textarea><p id="notesSaved" class="section-description"></p>';
+timeline.parentElement.insertAdjacentElement("afterend",notesPanel);
+const notesKey="ordo-practice-log-"+dateString;const noteField=notesPanel.querySelector("textarea");noteField.value=localStorage.getItem(notesKey)||"";noteField.addEventListener("input",()=>{localStorage.setItem(notesKey,noteField.value);notesPanel.querySelector("#notesSaved").textContent="Saved on this device";});
+
 
 
 
@@ -2336,7 +929,7 @@ sessionData.steps.map(
 
 
 const checkboxId =
-`s-${sessionIndex}-step-${stepIndex}`;
+stepKeyFor(sessionIndex,stepIndex);
 
 
 const checked =
@@ -2533,7 +1126,7 @@ ${resourceHTML}
 
 
 
-<div class="specialist-box">
+${sessionData.prompt && gptURL ? `<div class="specialist-box">
 
 <div class="specialist-box-title">
 
@@ -2563,7 +1156,7 @@ ${openGPT}
 
 </div>
 
-</div>
+</div>` : ""}
 
 </div>
 
@@ -2695,13 +1288,9 @@ original;
 
 const closeoutItems = [
 
-"Completed today's highest-priority session.",
-
-"Identified anything that felt difficult or uncertain.",
-
-"Marked weak material for future retrieval.",
-
-"Stopped when the planned work was complete instead of adding unnecessary study."
+"Protected sleep and family time.",
+"Recorded progress or weak material for today’s learning.",
+"Stopped on time; missed hobbies do not become sleep debt."
 
 ];
 
@@ -2959,14 +1548,9 @@ location.reload();
 ===================================================== */
 
 
-function getTotalTasksForDay(
-dayNumber
-) {
+function getTotalTasksForDay(dayNumber,date=now) {
 
-const dayData =
-schedule[
-dayNumber
-];
+const dayData = storedSchedule(date)[dayNumber];
 
 
 const sessionSteps =
@@ -3000,7 +1584,7 @@ dayNumber
 
 const key =
 
-"daniel-development-" +
+"ordo-routine-v2-" +
 formatDateKey(
 date
 );
@@ -3019,9 +1603,8 @@ key
 let completed = 0;
 
 
-schedule[
-dayNumber
-].sessions.forEach(
+const historicalDay=storedSchedule(date)[dayNumber];
+historicalDay.sessions.forEach(
 (currentSession,sessionIndex) => {
 
 
@@ -3030,7 +1613,7 @@ currentSession.steps.forEach(
 
 
 const stepKey =
-`s-${sessionIndex}-step-${stepIndex}`;
+stepKeyFor(sessionIndex,stepIndex,historicalDay);
 
 
 if (
@@ -3104,9 +1687,7 @@ dateStart.setHours(
 
 
 const total =
-getTotalTasksForDay(
-dayNumber
-);
+getTotalTasksForDay(dayNumber,date);
 
 
 const completed =
@@ -3282,17 +1863,8 @@ weekDays.forEach(
 item => {
 
 
-const data =
-schedule[
-item.scheduleDay
-];
-
-
-const actualDate =
-addDays(
-monday,
-item.offset
-);
+const actualDate=addDays(monday,item.offset);
+const data=storedSchedule(actualDate)[item.scheduleDay];
 
 
 const status =
