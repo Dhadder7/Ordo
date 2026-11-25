@@ -44,7 +44,7 @@ resource
 const ORDO_STAGE_KEY="ordo-curriculum-stages-v2";
 function readLocal(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch(e){return fallback;}}
 const stageDefaults={german:1,guitar:1,tang:1};
-function normalizeStages(raw){return Object.fromEntries(Object.keys(stageDefaults).map(k=>[k,Math.max(1,Math.min(12,Number(raw?.[k])||1))]));}
+function normalizeStages(raw){return Object.fromEntries(Object.keys(stageDefaults).map(k=>[k,Math.max(1,Math.min(k==="german"?19:12,Math.floor(Number(raw?.[k])||1)))]));}
 const stages=normalizeStages(readLocal(ORDO_STAGE_KEY,stageDefaults));
 const DW="https://learngerman.dw.com/en/nicos-weg/c-36519789", ANKI="https://apps.ankiweb.net/", GUITAR="https://www.justinguitar.com/classes/beginner-guitar-course-grade-one", SONGS="https://www.justinguitar.com/songs", BOOK="https://www.amazon.com/dp/0865681708", BOOKTOC="https://www.kriso.lv/tang-soo-do-ultimate-guide-korean-db-9780865681705.html";
 const FORM="https://www.youtube.com/watch?v=b5FzgKp9rg0", FORM2="https://www.youtube.com/watch?v=enGPL_HMtT0", STANCES="https://www.youtube.com/watch?v=IXvCuXaat_M", KICKS="https://www.youtube.com/watch?v=NTFvuSk2rVQ", TERMS="https://tka.cc/promotion/korean-terms/", PENTA="https://www.justinguitar.com/modules/minor-pentatonic-scale";
@@ -61,7 +61,14 @@ const germanUnits=[
 ["Appointments","Wie spät ist es?|Hast du morgen Zeit?|Wann spielen wir?|Zu spät?!","tell time and arrange an appointment"],
 ["Working life","Ich bin Lehrerin|Mein Beruf|Wo ist der Aufzug?|Traumberufe","describe occupations and ask workplace questions using fictional examples"],
 ["Orientation","Wo ist der Bahnhof?|An der Ampel links|Mit Bus und Bahn|Im Büro","ask for and understand simple directions"],
-["Eating and leisure","Lebensmittel|Ich mag (nicht)!|Haushaltsarbeit|Was macht dir Spaß?","talk about food, household chores and hobbies"]
+["Eating and leisure","Lebensmittel|Ich mag (nicht)!|Haushaltsarbeit|Was macht dir Spaß?","talk about food, household chores and hobbies"],
+["Food","Mengen und Preise|Was darf es sein?|Sonst noch etwas?|Wie viel Mehl?","ask for quantities and prices, order groceries and describe recipe ingredients"],
+["Weather and holiday","Wie war dein Urlaub?|Jahreszeiten|Der Ausflug|Wie wird das Wetter?","describe a holiday, the seasons and weather"],
+["Clothing","Das ist jetzt modern|Mein Lieblingspulli|Das passt gut!|Schick!","describe clothing, preferences, fit and shopping"],
+["Family","Meine Familie|Meine Eltern|Meine Tante|Mein Bruder","describe a fictional family using possessives"],
+["Sports and exercise","Von Kopf bis Fuß|Bist du fit?|Fitness|Ist das gesund?","name parts of the body and describe everyday activities"],
+["Health","Geht es dir gut?|Beim Arzt|Gute Besserung!|Nehmen Sie …","describe a fictional symptom, understand simple advice and express well-wishes"],
+["Home","Meine Heimat|Leben in Deutschland|Anders als zu Hause|Ich träume von …","describe your home country, compare everyday life and express simple hopes"]
 ];
 const guitarWeeks=[
 ["Module 0 then Module 1: A and D","A/D chord shapes; tune E A D G B E; pick each string separately","A to D and back","30 clean changes/minute; 8 bars without stopping","Three Little Birds (preview only; practice A and D)", "https://www.youtube.com/watch?v=UY3YEMMFfSs",50],
@@ -80,8 +87,8 @@ const guitarWeeks=[
 const tangWeeks=[
 ["Foundations and etiquette","pp. 6–14 (biography/history/lineage); pp. 31–33 (stances); glossary pp. 251–254","read history and identify Moo Duk Kwan lineage; practice ready and front stance","front and horse stance, 3 × 15 seconds per side/position","5 stable transitions and explain 3 terms",STANCES],
 ["Stances and controlled movement","pp. 31–33 (stances); pp. 34–38 (beginning of basic movements)","identify front, back and horse stances from photos; practice at comfortable depth","5 slow transitions per side; pause and check alignment","10 controlled transitions without losing balance",STANCES],
-["Hand techniques","pp. 23–30 (hand/foot techniques); pp. 34–44 (basic movements)","find basic punch and low/middle block illustrations; practice slowly in air","2 × 5 repetitions per side for each technique; no contact or locked joints","8 of 10 repetitions controlled; identify start and end positions",STANCES],
-["Front kick fundamentals","pp. 55–61 (kicking techniques; locate front kick illustration)","compare book photos with front-kick reference; supported chamber and return at low height","2 × 5 slow chamber/rechamber per leg; easy low kicks only if comfortable","5 controlled low repetitions on each leg",KICKS],
+["Hand techniques","pp. 23–30 (hand/foot techniques); pp. 34–44 (basic movements)","find basic punch and low/middle block illustrations; practice slowly in air","2 × 5 repetitions per side for each technique; no contact or locked joints","8 of 10 repetitions controlled; identify start and end positions","https://www.youtube.com/watch?v=BGzE0JQqyAo"],
+["Front kick fundamentals","pp. 55–61 (kicking techniques; locate front kick illustration)","compare book photos with front-kick reference; supported chamber and return at low height","2 × 5 slow chamber/rechamber per leg; easy low kicks only if comfortable","5 controlled low repetitions on each leg","https://tangsoodoworld.com/reference/reference_techniques_front_kick.htm"],
 ["Side kick and roundhouse preparation","pp. 55–61 (locate side and roundhouse kick illustrations)","compare chambers and support-foot movement; practice slowly with support as needed","2 × 5 chambers per side; no high kicks or force","5 balanced chambers per side; stop if painful",KICKS],
 ["Footwork and transitions","pp. 31–33; pp. 34–54 (basic movements)","review book stances; practice forward and backward stepping in clear space","3 sets of 4 slow steps; reset between sets","3 clean sets without loss of balance",STANCES],
 ["Connect basics","pp. 34–54; pp. 62–65 (forms overview)","review one stance, one basic hand movement and controlled transition; read purpose of forms","3 × 4 slow movements; practice without contact","explain the purpose of forms and complete 3 steady sets",FORM2],
@@ -129,15 +136,15 @@ let steps=core?[
 "15–35 min: redo a selection of DW exercises without hints; record first-attempt accuracy.",
 "35–55 min: role-play the unit goal with German Coach; attempt at least eight exchanges in German.",
 "55–65 min: write five original sentences; correct after attempting.",
-"65–75 min: record results. Advance only after at least 80% exercise/word accuracy, 4/5 comprehensible sentences and a simple conversation with minimal English. Otherwise repeat this stage."
+"65–75 min: record results. Advance only after at least 80% exercise/word accuracy, 4/5 comprehensible sentences and a simple conversation with minimal English. Otherwise repeat this stage. "+(stage===19?"Take the full A1 assessment and start DW A2 only when ready; continue the same study/retrieval cycle.":"")
 ];
-return S("🇩🇪","German Coach",start,end,minutes,"Stage "+stage+"/12 · "+unit+" · "+title+". Goal: "+goal+".",steps,res("DW Nicos Weg",DW,"Follow the A1 course navigation above. The DW course remains the source of truth."),"Act as my A1 German conversation partner. Unit: "+unit+". Goal: "+goal+". Ask one question at a time in German; let me respond before correcting. End with a score out of 10, three errors to revisit, and a practical next step.","german",stage);}
+return S("🇩🇪","German Coach",start,end,minutes,"Stage "+stage+"/19 · "+unit+" · "+title+". Goal: "+goal+".",steps,res("DW Nicos Weg",DW,"Follow the A1 course navigation above. The DW course remains the source of truth."),"Act as my A1 German conversation partner. Unit: "+unit+". Goal: "+goal+". Ask one question at a time in German; let me respond before correcting. End with a score out of 10, three errors to revisit, and a practical next step.","german",stage);}
 function guitar(day,stage,start,end){
 const [module,skill,pairs,gate,song,video,bpm]=guitarWeeks[stage-1];
 const mode={1:"Learn",4:"Technique",6:"Repertoire",0:"Assessment"}[day];
 let steps=[
 "0–5 min: tune to standard tuning; relax hands; pick each string slowly at "+bpm+" bpm.",
-day===1?"5–15 min: open "+link(GUITAR,"JustinGuitar Grade 1")+" → "+module+". Watch the relevant lesson; pause and copy the demonstration. "+skill+".":"5–15 min: revisit the "+module+" demonstration. "+skill+". Practice the weakest movement slowly; use the lesson video rather than guessing.",
+day===1?"5–15 min: open "+link(GUITAR,"JustinGuitar Grade 1")+" → "+module+". Watch the relevant lesson; pause and copy the demonstration. "+(stage===1?"Use How To Play The D Chord, How To Play The A Chord and the One Minute Changes exercise. ":stage===2?"Find the E chord and first riff lessons. ":stage>=9?"Use the separate minor pentatonic module linked below. ":"") +skill+".":"5–15 min: revisit the "+module+" demonstration. "+skill+". Practice the weakest movement slowly; use the lesson video rather than guessing.",
 "15–25 min: "+pairs+". Do 3 one-minute change drills with short rests; count only clear chords. "+(stage>=9?"Spend 4 minutes with "+link(PENTA,"minor pentatonic lesson")+" and play one clean note per beat.":"Check fingers and unwanted string noise, then strum steady quarter notes."),
 "25–35 min: "+link(video,song+" tutorial")+". "+(day===1?"Learn one small phrase or section; loop it slowly.":day===4?"Loop the hardest 2–4 bars, then connect the next section.":day===6?"Play verse and chorus together at a manageable speed.":"Record a continuous take of the assigned section or whole song.")+" Use "+link(SONGS,"JustinGuitar song library")+" for chord diagrams and song lessons.",
 "35–40 min: log tempo, clean changes/minute, and song section. "+(day===0?"Mastery gate: "+gate+". If not met, repeat this stage; do not advance simply because the week ended.":"Success today: three steady repetitions with clear notes; slow down when errors recur.")
@@ -178,18 +185,18 @@ a.push(S("🇩🇪","German Coach","1940","2010",30,"Speaking practice tied to "
 add("☕","Free time","2010","2100",50,"Unstructured personal or family time.",["Keep this time open; do not automatically fill it with unfinished sessions."]);
 }else if(d===2){
 a.push(tang(d,s.tang,"1900","1940",40));
-add("📖","Reading","1940","2010",30,"Read the current book.",["Read for 25 minutes; note the page and one key thought for 5 minutes."]);
+add("📖","Reading","1940","2010",30,"Read the current book.",["Open "+link("https://renaissance-reading-library.daniel-hadder.chatgpt.site","Virtual Library")+" to choose or update your current book. Read 25 minutes; note page and one key thought for 5 minutes."]);
 add("☕","Free time","2010","2100",50,"Recovery and family time.",["Keep this time open."]);
 }else if(d===4){
 a.push(tang(d,s.tang,"1900","1930",30));
 a.push(guitar(d,s.guitar,"1930","2010"));
 add("☕","Free time","2010","2100",50,"Recovery and family time.",["Keep this time open."]);
 }else{
-add("🎬","Film Index","1900","2100",120,"Watch one unwatched film; protect bedtime.",["Select an unwatched title in Film Index: "+(d===3?"international or art-house cinema":"American classic or entertainment")+". Choose a runtime that fits.","Watch, mark seen and optionally write one sentence about the film. If it runs long, finish on the weekend."]);
+add("🎬","Film Index","1900","2100",120,"Watch one unwatched film; protect bedtime.",["Open "+link("https://film-index.daniel-hadder.chatgpt.site","Film Index")+" and select an unwatched title: "+(d===3?"international or art-house cinema":"American classic or entertainment")+". Choose a runtime that fits.","Watch, mark seen and optionally write one sentence about the film. If it runs long, finish on the weekend."]);
 }
-add("📖","Bedtime reading","2100","2115",15,"Read for pleasure.",["Read 15 minutes; note your page and stop on time."]);
+add("📖","Bedtime reading","2100","2115",15,"Read for pleasure.",["Read 15 minutes; update "+link("https://renaissance-reading-library.daniel-hadder.chatgpt.site","Virtual Library")+" if desired; stop on time."]);
 add("🌙","Bed routine","2115","2130",15,"Prepare for sleep.",["Brush teeth, hygiene, set alarm, put screens away."]);
-add("🛏️","Sleep opportunity","2130","0530",480,"Protect eight hours in bed.",["Aim for lights out at 2130; if you missed a hobby, do not catch up at the expense of sleep."]);
+add("🛏️","Sleep opportunity","2130",d===5?"0630":"0530",d===5?540:480,"Protect at least eight hours in bed.",["Aim for lights out at 2130; if you missed a hobby, do not catch up at the expense of sleep."]);
 }else{
 add("☀️","Morning / breakfast","0630","0730",60,"Allow a slightly later weekend start.",["Get ready, eat breakfast, hydrate and spend unhurried time at home."]);
 if(d===6)add("🏋️","Jim Stoppani workout","0730","0900",90,"Follow the scheduled session or rest day.",["Open Jim Stoppani Today's Workout; log there; don't add extra training to make up misses."],res("Jim Stoppani","https://www.jimstoppani.com/","Use the existing workout plan."));
@@ -200,11 +207,11 @@ add("🏡","Family, errands and lunch","1045","1400",195,"Protected flexible tim
 a.push(guitar(d,s.guitar,"1400","1440"));
 if(d===6)a.push(tang(d,s.tang,"1450","1530",40));
 else add("🗓️","Weekly review","1450","1530",40,"Review outcomes and adjust next week's plan.",["Review German accuracy/conversation, guitar tempo/songs, Tang Soo Do control, and films/books completed.","Use the independent stage selectors only for tracks whose gates are met; otherwise repeat. Identify one change that will make next week easier.","Reserve time for family, chores and any upcoming academic or work obligations; do not sacrifice sleep."]);
-add("📖","Reading","1530","1600",30,"Progress in your current book.",["Read 25 minutes; note your page and one memorable idea."]);
+add("📖","Reading","1530","1600",30,"Progress in your current book.",["Open "+link("https://renaissance-reading-library.daniel-hadder.chatgpt.site","Virtual Library")+"; read 25 minutes and note page and one memorable idea."]);
 add("🏡","Flexible family / dinner prep","1600","1730",90,"Keep weekend room for real life.",["Family, errands, downtime and meal preparation."]);
 add("🍽️","Family dinner","1730","1830",60,"Protected family time.",["Eat together when possible."]);
 add("🧹","Cleanup / household","1830","1900",30,"Finish essential tasks.",["Clean up and prepare for tomorrow."]);
-add("🎬","Film Index","1900","2100",120,"Watch one unwatched film; longer films can start earlier.",["Choose "+(d===6?"any unwatched film":"a historically significant film")+". Mark seen in Film Index. Note a takeaway if desired."]);
+add("🎬","Film Index","1900","2100",120,"Watch one unwatched film; longer films can start earlier.",["Open "+link("https://film-index.daniel-hadder.chatgpt.site","Film Index")+"; choose "+(d===6?"any unwatched film":"a historically significant film")+". Mark seen in Film Index. Note a takeaway if desired."]);
 add("📖","Bedtime reading","2100","2115",15,"Relax with a book.",["Read for 15 minutes, then stop."]);
 add("🌙","Bed routine","2115","2130",15,"Protect bedtime.",["Hygiene, set alarm, put away screens."]);
 add("🛏️","Sleep opportunity","2130",d===6?"0630":"0530",d===6?540:480,"Protect sleep.",["Lights out at 2130; allow the full sleep window."]);
@@ -896,9 +903,10 @@ JSON.stringify(savedState)
 const timeline = document.getElementById("timeline");
 const stagePanel=document.createElement("section");
 stagePanel.className="large-card";
-stagePanel.innerHTML='<div class="section-kicker">MASTERY TRACKS</div><h2>12-stage learning plan</h2><p class="section-description">Each track advances independently after its assessment. Start at the stage that matches your current skill; repeat when needed. Changes preserve old checkbox records. Stages 1–12 are the initial cycle, not a promise of fluency or rank.</p><div class="priority-input-grid">'+Object.entries({german:"German · A1",guitar:"Guitar",tang:"Tang Soo Do"}).map(([k,v])=>'<label class="priority-input-card"><strong>'+v+'</strong><select aria-label="'+v+' stage" data-stage="'+k+'" style="width:100%;padding:10px;margin-top:8px;background:#101722;color:#fff;border:1px solid #64748b;border-radius:6px">'+Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'" '+(stages[k]===i+1?'selected':'')+'>Stage '+(i+1)+'</option>').join("")+'</select></label>').join("")+'</div><p class="section-description">After stage 12: German continues with A1 Food through Home, then A2/B1/B2; guitar moves into Grade 2 and blues; Tang Soo Do progresses with instructor feedback.</p><button type="button" class="primary-button" id="saveStages">Apply stages</button><p class="section-description" id="stageFeedback"></p>';
+stagePanel.innerHTML='<div class="section-kicker">MASTERY TRACKS</div><h2>Learning tracks · mastery progression</h2><p class="section-description">Each track advances independently after its assessment. Start at the stage that matches your current skill; repeat when needed. Changes preserve old checkbox records. German covers all 19 A1 units; guitar and Tang Soo Do each have 12 stages. This is not a promise of fluency or rank.</p><div class="priority-input-grid">'+Object.entries({german:"German · A1",guitar:"Guitar",tang:"Tang Soo Do"}).map(([k,v])=>'<label class="priority-input-card"><strong>'+v+'</strong><select aria-label="'+v+' stage" data-stage="'+k+'" style="width:100%;padding:10px;margin-top:8px;background:#101722;color:#fff;border:1px solid #64748b;border-radius:6px">'+Array.from({length:k==="german"?19:12},(_,i)=>'<option value="'+(i+1)+'" '+(stages[k]===i+1?'selected':'')+'>Stage '+(i+1)+'</option>').join("")+'</select></label>').join("")+'</div><p class="section-description">Next levels: after German stage 19, take an A1 assessment and continue through A2, B1 and B2. After guitar stage 12, move into Grade 2 and blues. Tang Soo Do progresses with qualified instructor feedback.</p><button type="button" class="primary-button" id="saveStages">Apply stages</button><p class="section-description" id="stageFeedback"></p>';
 document.getElementById("priorityBand").insertAdjacentElement("afterend",stagePanel);
 stagePanel.querySelector("#saveStages").addEventListener("click",()=>{const next={};stagePanel.querySelectorAll("[data-stage]").forEach(el=>next[el.dataset.stage]=Number(el.value));localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(normalizeStages(next)));location.reload();});
+const minimum=document.createElement("section");minimum.className="large-card";minimum.innerHTML='<div class="section-kicker">BUSY DAY FALLBACK</div><h2>Minimum viable day</h2><p>Protect sleep, work and family dinner. Use a rest day or shorter session if your Stoppani plan permits. German: 10 minutes of due Anki review, 10 minutes of the current DW lesson, and one spoken sentence. Optional hobbies can wait; never double up at the cost of sleep.</p><p class="section-description">A missed lesson does not advance your stage. Resume it before moving on.</p>';stagePanel.insertAdjacentElement("afterend",minimum);
 const notesPanel=document.createElement("section");notesPanel.className="large-card";
 notesPanel.innerHTML='<div class="section-kicker">DAILY RESULTS</div><h2>Practice log</h2><p class="section-description">Record DW score and conversation, guitar tempo / chord changes / song, Tang Soo Do control and instructor questions, book pages and film watched. Saved locally on this device.</p><textarea aria-label="Daily practice notes" id="ordoPracticeNotes" rows="5" style="width:100%;padding:12px;background:#101722;color:#fff;border:1px solid #64748b;border-radius:8px"></textarea><p id="notesSaved" class="section-description"></p>';
 timeline.parentElement.insertAdjacentElement("afterend",notesPanel);
@@ -976,7 +984,7 @@ resourceHTML = `
 <div class="resource-assignment">
 
 <strong>
-📚 FREE RESOURCE
+📚 ASSIGNED RESOURCE
 </strong>
 
 <br>
