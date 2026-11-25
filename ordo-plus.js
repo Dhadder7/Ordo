@@ -11,6 +11,7 @@ const mins=t=>{const m=/^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(t));return m?Nu
 const clock=n=>{n=(n+1440)%1440;return String(Math.floor(n/60)).padStart(2,"0")+String(n%60).padStart(2,"0")};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function clean(raw={}){
+if(!raw||typeof raw!=="object"||Array.isArray(raw))raw={};
 const x={...defaults};for(const k of ["wake","weekendWake","workStart","workEnd","dinner"])if(Number.isFinite(mins(raw[k])))x[k]=raw[k];
 for(const [k,lo,hi] of [["workout",60,90],["commute",0,90],["lunch",60,90],["sleep",8,9]])if(raw[k]!==undefined&&Number.isFinite(Number(raw[k])))x[k]=Math.max(lo,Math.min(hi,Math.round(Number(raw[k])* (k==="sleep"?2:1))/(k==="sleep"?2:1)));
 if(["normal","busy","deadline","recovery"].includes(raw.mode))x.mode=raw.mode;
@@ -38,9 +39,9 @@ const mode=activeMode(s,date), out={};
 for(let d=0;d<7;d++){
 const weekday=d>=1&&d<=5, items=raw[d].sessions.map((v,i)=>({...v,_originalIndex:i,steps:[...v.steps]})), result=[];
 const by=n=>items.find(v=>v.name===n), is=(v,n)=>v.name===n;
-const wake=mins(weekday?s.wake:s.weekendWake), nextWake=mins(d===5||d===6?s.weekendWake:s.wake), bed=(nextWake-s.sleep*60+1440)%1440,dinner=mins(s.dinner),workStart=mins(s.workStart),workEnd=mins(s.workEnd);
+const wake=mins(weekday?s.wake:s.weekendWake), nextWake=mins(d===5||d===6?s.weekendWake:s.wake), bed=Math.min((mins(s.wake)-s.sleep*60+1440)%1440,(nextWake-s.sleep*60+1440)%1440),dinner=mins(s.dinner),workStart=mins(s.workStart),workEnd=mins(s.workEnd);
 let t=wake;
-function put(v,start,length,steps){if(!v||length<=0)return;const x={...v,start:clock(start),end:clock(start+length),minutes:length};if(steps)x.steps=steps;result.push(x);return x;}
+function put(v,start,length,steps){if(!v||length<=0)return;const x={...v,start:clock(start),end:clock(start+length),minutes:length};if(steps)x.steps=steps;if(mode!=="normal"&&steps)x._variant=mode;result.push(x);return x;}
 function seq(v,length,steps){if(!v||length<=0)return;put(v,t,length,steps);t+=length}
 function synthetic(id,name,icon,objective,steps){return {name,icon,objective,steps,_originalIndex:id,prompt:"",resource:null}}
 function spare(until,name="Buffer / free time"){if(until>t)seq(synthetic("buffer-"+t,name,"☕","Keep this margin available.",["Use for family, delays or downtime; no catch-up requirement."]),until-t)}
@@ -57,7 +58,7 @@ seq(by("Get ready"),30);seq(by("Breakfast"),20);seq(study[0],reduced?10:15,reduc
 spare(workStart-s.commute-13);
 seq(by("Commute and arrival"),s.commute+13,["Leave at "+clock(workStart-s.commute-13)+"; "+s.commute+"-minute commute and 13-minute arrival buffer."]);
 put(by("Work + breaks"),workStart,workEnd-workStart,["Work comes first. Optional permitted breaks: up to 10 minutes of vocabulary or listening.","Lunch: "+s.lunch+" minutes planned; eat 25 minutes, then "+(reduced?20:35)+" minutes German if duties permit. Remaining time is downtime."]);
-const lunch=study[1]; if(lunch){result.push({...lunch,start:"Lunch +25",end:"Lunch +"+(reduced?45:60),minutes:reduced?20:35,steps:reduced?shortLesson(lunch):lunch.steps});}
+const lunch=study[1]; if(lunch){result.push({...lunch,start:"Lunch +25",end:"Lunch +"+(reduced?45:60),minutes:reduced?20:35,_variant:reduced?mode:"",steps:reduced?shortLesson(lunch):lunch.steps});}
 t=workEnd;seq(by("Commute home"),s.commute);seq(by("Home and dinner prep"),dinner-t);
 }else{
 seq(by("Morning / breakfast"),60);
@@ -70,7 +71,7 @@ const allowed=tail.filter(v=>!reduced||v.name==="Weekly review"||v.name==="Readi
 const needed=allowed.reduce((sum,v)=>sum+v.minutes+5,0);
 const target=Math.max(t+60,Math.min(14*60,dinner-needed-60));
 seq(flex,Math.max(0,Math.min(target,dinner)-t));
-for(const v of allowed){if(t+v.minutes+30<=dinner){seq(v,v.minutes);if(v.track==="guitar"&&t+5<dinner)t+=5;}}
+for(const v of allowed){if(t+v.minutes+30<=dinner){seq(v,v.minutes);if(v.track==="guitar"&&t+10<dinner)t+=10;}}
 seq(by("Flexible family / dinner prep"),dinner-t);
 }
 t=dinner;seq(by("Family dinner"),60);seq(by("Cleanup / household"),30);
@@ -88,7 +89,7 @@ else skipped.push(v.name);
 }
 if(reduced&&mode!=="recovery"&&stop-t>=30){seq(synthetic("focus","Priority time","🎯","Temporary priority block.",["Use this time for "+esc(s.focus)+" or family obligations. Stop at the scheduled time."]),Math.min(mode==="deadline"?90:45,stop-t));}
 spare(stop);
-seq(by("Bedtime reading"),15);seq(by("Bed routine"),15);put(by("Sleep opportunity"),bed,s.sleep*60,["Lights out at "+clock(bed)+"; next wake "+clock(nextWake)+". Protect "+s.sleep+" hours of sleep opportunity."]);
+seq(by("Bedtime reading"),15);seq(by("Bed routine"),15);const sleepMinutes=1440-bed+nextWake;put(by("Sleep opportunity"),bed,sleepMinutes,["Lights out at "+clock(bed)+"; next wake "+clock(nextWake)+". Protect "+(sleepMinutes/60).toFixed(1)+" hours of sleep opportunity."]);
 out[d]={...raw[d],sessions:result,focus:raw[d].focus+(mode==="normal"?"":" "+mode.charAt(0).toUpperCase()+mode.slice(1)+" mode: optional sessions are reduced; stages are preserved.")+(skipped.length?" Some evening sessions deferred to protect bedtime.":"")};
 }
 return out;
@@ -97,7 +98,7 @@ function assessment(track,stage,record){
 if(!record)return {pass:false,reason:"No assessment recorded for this stage. Complete the scheduled assessment."};
 if(track==="german"){
 const pass=record.accuracy>=80&&record.recall>=80&&record.sentences>=4&&record.conversation===true;
-return {pass,reason:pass?"DW accuracy, recall, sentence and conversation standards met.":"Repeat the current unit. Focus on "+[record.accuracy<80?"DW errors":"",record.recall<80?"vocabulary retrieval":"",record.sentences<4?"sentence construction":"",!record.conversation?"speaking":""].filter(Boolean).join(", ")+ "."};
+return {pass,reason:pass?"DW accuracy, recall, sentence and conversation standards met.":"Repeat the current unit. Focus on "+[!(record.accuracy>=80)?"DW errors":"",!(record.recall>=80)?"vocabulary retrieval":"",!(record.sentences>=4)?"sentence construction":"",!record.conversation?"speaking":""].filter(Boolean).join(", ")+ "."};
 }
 const pass=record.gate===true;
 return {pass,reason:pass?"You confirmed the specific stage performance standard.":"Repeat the current stage. Revisit the weakest exercise and retest the exact gate."};
@@ -123,7 +124,7 @@ for(const [key,value] of Object.entries(payload.data)){
 if(!portableKey(key)||typeof value!=="string"||value.length>2000000)continue;
 if(key.startsWith("ordo-practice-log-")){pending[key]=replace||!localStorage.getItem(key)?value:localStorage.getItem(key);continue}
 let v;try{v=JSON.parse(value)}catch(e){continue}
-if(key===METRICS){if(!Array.isArray(v))continue;v=replace?v:mergeRecords(getRecords(),v);}
+if(key===METRICS){if(!Array.isArray(v))continue;v=v.filter(r=>r&&typeof r.id==="string"&&["german","guitar","tang","reading","film","fitness"].includes(r.track)&&/^\d{4}-\d{2}-\d{2}$/.test(r.date||"")).map(r=>{const cleanRecord={id:r.id.slice(0,100),track:r.track,date:r.date,created:String(r.created||r.date).slice(0,40),notes:String(r.notes||"").slice(0,1000),gate:r.gate===true,conversation:r.conversation===true};if(["german","guitar","tang"].includes(r.track))cleanRecord.stage=Math.max(1,Math.min(r.track==="german"?19:12,Math.floor(Number(r.stage)||1)));for(const n of ["accuracy","recall","sentences","changes","tempo","songs","reps","forms","pages","books","films","minutes"])if(typeof r[n]==="number"&&Number.isFinite(r[n])&&r[n]>=0&&r[n]<=2000)cleanRecord[n]=r[n];return cleanRecord;});v=replace?mergeRecords(getRecords(),v):mergeRecords(v,getRecords());}
 else if(key===SETTINGS||key.startsWith("ordo-settings-history-")){v=clean(v);if(errors(v).length)continue;if(!replace&&localStorage.getItem(key))continue;}
 else if(key.startsWith("ordo-routine-v2-")||key.startsWith("daniel-development-")){if(!v||Array.isArray(v)||typeof v!=="object")continue;v=Object.fromEntries(Object.entries(v).filter(([k,x])=>/^(s-|closeout-)/.test(k)&&typeof x==="boolean"));if(!replace)v={...v,...read(key,{})};}
 else if(!replace&&localStorage.getItem(key))continue;
@@ -166,8 +167,10 @@ const all=getRecords(), since=n=>{let d=new Date();d.setDate(d.getDate()-n+1);re
 const sum=(rs,k)=>rs.reduce((a,r)=>a+(Number(r[k])||0),0),avg=(rs,k)=>{const a=rs.filter(r=>Number.isFinite(r[k]));return a.length?Math.round(sum(a,k)/a.length):"—"};
 const data=[["German accuracy",r=>avg(r.filter(x=>x.track==="german"),"accuracy"),"%"],["Guitar tempo",r=>avg(r.filter(x=>x.track==="guitar"),"tempo")," BPM"],["Clean changes/min",r=>avg(r.filter(x=>x.track==="guitar"),"changes"),""],["Songs finished",r=>sum(r,"songs"),""],["Controlled reps",r=>sum(r,"reps"),""],["Forms completed",r=>sum(r,"forms"),""],["Pages read",r=>sum(r,"pages"),""],["Books finished",r=>sum(r,"books"),""],["Films finished",r=>sum(r,"films"),""],["Workout minutes",r=>sum(r,"minutes"),""]];
 q("ordoTrends").innerHTML='<div class="plus-table"><table><thead><tr><th>Measure</th><th>7 days</th><th>30 days</th><th>All time</th></tr></thead><tbody>'+data.map(([label,fn,u])=>'<tr><th>'+label+'</th>'+[recent(7),recent(30),all].map(r=>'<td>'+fn(r)+(fn(r)==="—"?"":u)+'</td>').join("")+'</tr>').join("")+'</tbody></table></div><p class="section-description">Accuracy, tempo and chord changes are averages; other values are totals. Logs: '+all.length+'.</p>';
+const months=Array.from({length:6},(_,i)=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-(5-i));const key=dateKey(d).slice(0,7);return {key,rows:all.filter(r=>r.date.startsWith(key))}});
+q("ordoTrends").innerHTML+='<h3>Six-month history</h3><div class="plus-table"><table><thead><tr><th>Month</th><th>German %</th><th>Guitar BPM</th><th>Films</th><th>Pages</th></tr></thead><tbody>'+months.map(m=>'<tr><th>'+m.key+'</th><td>'+avg(m.rows.filter(r=>r.track==="german"),"accuracy")+'</td><td>'+avg(m.rows.filter(r=>r.track==="guitar"),"tempo")+'</td><td>'+sum(m.rows,"films")+'</td><td>'+sum(m.rows,"pages")+'</td></tr>').join("")+'</tbody></table></div>';
 q("ordoRecommendations").innerHTML=Object.keys(tracks).map(k=>{const r=recentAssessment(k,stages[k]),a=assessment(k,stages[k],r),atEnd=stages[k]===cap[k];return '<article class="plus-result"><strong>'+tracks[k]+' · stage '+stages[k]+'</strong><p>'+esc(a.reason)+(r?.notes?' Last note: '+esc(r.notes):"")+'</p>'+(a.pass&&!atEnd?'<button class="primary-button" data-advance="'+k+'">Accept recommendation: advance one stage</button>':a.pass&&atEnd?'<p>Initial curriculum complete. Continue at the next proficiency level with a new plan; do not claim certification.</p>':'<p class="section-description">Recommendation: stay on this stage and repeat the weakest lesson.</p>')+'</article>'}).join("");
-q("ordoRecent").innerHTML=all.length?all.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.created).localeCompare(String(a.created))).slice(0,20).map(r=>'<article class="plus-result"><strong>'+esc(r.date)+' · '+esc(tracks[r.track]||r.track)+(r.stage?' · stage '+r.stage:'')+'</strong><p>'+esc(Object.entries(r).filter(([k])=>["accuracy","recall","sentences","changes","tempo","songs","reps","forms","pages","books","films","minutes"].includes(k)).map(([k,v])=>k+': '+v).join(" · "))+'</p><p>'+esc(r.notes||"")+'</p><button type="button" class="secondary-button" data-remove-metric="'+esc(r.id)+'">Delete entry</button></article>').join(""):'<p>No results logged yet.</p>';
+q("ordoRecent").innerHTML=all.length?all.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.created).localeCompare(String(a.created))).slice(0,20).map(r=>'<article class="plus-result"><strong>'+esc(r.date)+' · '+esc(tracks[r.track]||r.track)+(r.stage?' · stage '+esc(r.stage):'')+'</strong><p>'+esc(Object.entries(r).filter(([k])=>["accuracy","recall","sentences","changes","tempo","songs","reps","forms","pages","books","films","minutes"].includes(k)).map(([k,v])=>k+': '+v).join(" · "))+'</p><p>'+esc(r.notes||"")+'</p><button type="button" class="secondary-button" data-remove-metric="'+esc(r.id)+'">Delete entry</button></article>').join(""):'<p>No results logged yet.</p>';
 }
 metric.addEventListener("submit",e=>{e.preventDefault();const f=new FormData(metric),k=f.get("track"),r={id:crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random(),date:f.get("date"),created:new Date().toISOString(),track:k,notes:String(f.get("notes")||"").slice(0,1000)};if(tracks[k])r.stage=stages[k];for(const n of ["accuracy","recall","sentences","changes","tempo","songs","reps","forms","pages","books","films","minutes"])if(f.has(n))r[n]=Number(f.get(n));r.gate=f.has("gate");r.conversation=f.has("conversation");try{write(METRICS,[...getRecords(),r]);q("ordoMetricStatus").textContent="Saved. See updated recommendation.";metric.elements.notes.value="";renderMetrics()}catch(err){q("ordoMetricStatus").textContent=err.message}});
 root.addEventListener("click",e=>{const k=e.target.dataset?.advance,id=e.target.dataset?.removeMetric;if(k&&tracks[k]&&assessment(k,stages[k],recentAssessment(k,stages[k])).pass&&stages[k]<cap[k]){if(confirm("Advance "+tracks[k]+" one stage? Other disciplines stay unchanged.")){write("ordo-curriculum-stages-v2",{...stages,[k]:stages[k]+1});location.reload()}}if(id&&confirm("Delete this recorded assessment?")){write(METRICS,getRecords().filter(r=>r.id!==id));renderMetrics()}});
