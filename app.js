@@ -725,6 +725,9 @@ closeMenu();
 
 
 function showView(viewId) {
+if(!document.getElementById(viewId))return;
+const title=document.getElementById("pageTitle");if(title)title.textContent=({dashboardView:"ORDO",todayView:"Today’s plan",weeklyView:"Weekly plan",dayView:"Daily plan",learningView:"Learning tracks",trackView:"Learning track",performanceView:"Performance",recordingsView:"Recordings",enhancementsView:"Schedule settings",backupView:"Backup & transfer",resourcesView:"Resources",gptsView:"Specialist GPTs",remindersView:"Reminders & priorities",moreView:"More"})[viewId]||"ORDO";
+const headerProgress=document.querySelector(".header-progress");if(headerProgress)headerProgress.hidden=viewId!=="dashboardView"&&viewId!=="todayView";
 
 document.querySelectorAll(
 ".app-view"
@@ -781,9 +784,7 @@ closeMenu();
 
 
 
-document.querySelectorAll(
-".menu-nav-button"
-).forEach(
+document.querySelectorAll("[data-view]").forEach(
 button => {
 
 button.addEventListener(
@@ -811,9 +812,7 @@ button.addEventListener(
 "click",
 () => {
 
-showView(
-"todayView"
-);
+showView("dashboardView");
 
 }
 );
@@ -908,385 +907,93 @@ JSON.stringify(savedState)
 
 
 const timeline = document.getElementById("timeline");
-const stagePanel=document.createElement("section");
-stagePanel.className="large-card";
-stagePanel.innerHTML='<div class="section-kicker">MASTERY TRACKS</div><h2>Learning tracks · mastery progression</h2><p class="section-description">Each track advances independently after its assessment. Start at the stage that matches your current skill; repeat when needed. Changes preserve old checkbox records. German covers all 19 A1 units; guitar and Tang Soo Do each have 12 stages. This is not a promise of fluency or rank.</p><div class="priority-input-grid">'+Object.entries({german:"German · A1",guitar:"Guitar",tang:"Tang Soo Do"}).map(([k,v])=>'<label class="priority-input-card"><strong>'+v+'</strong><select aria-label="'+v+' stage" data-stage="'+k+'" style="width:100%;padding:10px;margin-top:8px;background:#101722;color:#fff;border:1px solid #64748b;border-radius:6px">'+Array.from({length:k==="german"?19:12},(_,i)=>'<option value="'+(i+1)+'" '+(stages[k]===i+1?'selected':'')+'>Stage '+(i+1)+'</option>').join("")+'</select></label>').join("")+'</div><p class="section-description">Next levels: after German stage 19, take an A1 assessment and continue through A2, B1 and B2. After guitar stage 12, move into Grade 2 and blues. Tang Soo Do progresses with qualified instructor feedback.</p><button type="button" class="primary-button" id="saveStages">Apply stages</button><p class="section-description" id="stageFeedback"></p>';
-(document.getElementById("curriculumSettings")||document.getElementById("priorityBand").parentElement).appendChild(stagePanel);
-stagePanel.querySelector("#saveStages").addEventListener("click",()=>{const next={};stagePanel.querySelectorAll("[data-stage]").forEach(el=>next[el.dataset.stage]=Number(el.value));localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(normalizeStages(next)));location.reload();});
-const minimum=document.createElement("section");minimum.className="large-card";minimum.innerHTML='<div class="section-kicker">BUSY DAY FALLBACK</div><h2>Minimum viable day</h2><p>Protect sleep, work and family dinner. Use a rest day or shorter session if your Stoppani plan permits. German: 10 minutes of due Anki review, 10 minutes of the current DW lesson, and one spoken sentence. Optional hobbies can wait; never double up at the cost of sleep.</p><p class="section-description">A missed lesson does not advance your stage. Resume it before moving on.</p>';stagePanel.insertAdjacentElement("afterend",minimum);
-const notesPanel=document.createElement("section");notesPanel.className="large-card";
-notesPanel.innerHTML='<div class="section-kicker">DAILY RESULTS</div><h2>Practice log</h2><p class="section-description">Record DW score and conversation, guitar tempo / chord changes / song, Tang Soo Do control and instructor questions, book pages and film watched. Saved locally on this device.</p><textarea aria-label="Daily practice notes" id="ordoPracticeNotes" rows="5" style="width:100%;padding:12px;background:#101722;color:#fff;border:1px solid #64748b;border-radius:8px"></textarea><p id="notesSaved" class="section-description"></p>';
+const trackLabels={german:"German",guitar:"Guitar",tang:"Tang Soo Do"};
+const trackIcons={german:"🇩🇪",guitar:"🎸",tang:"🥋"};
+const trackLimits={german:19,guitar:12,tang:12};
+const trackTitle=(key,stage)=>key==="german"?germanUnits[stage-1][0]:key==="guitar"?guitarWeeks[stage-1][0]:tangWeeks[stage-1][0];
+const trackGate=(key,stage)=>key==="german"?"80% DW exercise and vocabulary recall accuracy, 4/5 comprehensible sentences, and a simple conversation with minimal English.":key==="guitar"?guitarWeeks[stage-1][3]:tangWeeks[stage-1][4];
+function renderTrackMenu(){
+ const host=document.getElementById("trackTiles");
+ host.replaceChildren();
+ for(const key of Object.keys(trackLabels)){
+  const btn=document.createElement("button");btn.type="button";btn.className="dashboard-tile";
+  btn.innerHTML='<span class="tile-icon">'+trackIcons[key]+'</span><strong>'+trackLabels[key]+'</strong><span class="tile-caption">Stage '+stages[key]+' / '+trackLimits[key]+'</span>';
+  btn.addEventListener("click",()=>openTrack(key));host.appendChild(btn);
+ }
+}
+function openTrack(key){
+ if(!trackLabels[key])return;
+ const host=document.getElementById("trackContent"), stage=stages[key];
+ host.innerHTML='<section class="large-card"><div class="section-kicker">CURRENT STAGE</div><h2>'+trackIcons[key]+' '+trackLabels[key]+'</h2><h3>'+trackTitle(key,stage)+'</h3><p class="section-description">Stage '+stage+' of '+trackLimits[key]+'</p><div class="session-objective"><strong>Mastery standard:</strong> '+trackGate(key,stage)+'</div><label>Choose your current stage<select id="trackStageSelect" aria-label="Current stage">'+Array.from({length:trackLimits[key]},(_,i)=>'<option value="'+(i+1)+'" '+(i+1===stage?'selected':'')+'>'+ (i+1)+' · '+trackTitle(key,i+1)+'</option>').join("")+'</select></label><button class="primary-button" id="applyTrackStage">Apply stage</button><p class="section-description">Advance only after the mastery standard is met. Your other tracks and earlier progress remain unchanged.</p></section><section class="large-card"><h2>Scheduled practice this week</h2><div id="trackSessions"></div><p class="section-description">Tap a day to open the complete practice checklist and assigned resources. Future days are previews.</p></section>';
+ const chooser=host.querySelector("#trackStageSelect");
+ host.querySelector("#applyTrackStage").addEventListener("click",()=>{const next=normalizeStages({...stages,[key]:Number(chooser.value)});localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(next));sessionStorage.setItem("ordo-return-view","track:"+key);location.reload();});
+ const list=host.querySelector("#trackSessions"),monday=getMonday(now);
+ for(let i=0;i<7;i++){
+  const date=addDays(monday,i),data=storedSchedule(date)[date.getDay()], sessions=data.sessions.filter(s=>s.track===key);
+  if(!sessions.length)continue;
+  const btn=document.createElement("button");btn.type="button";btn.className="day-button";
+  btn.innerHTML='<span><strong>'+data.day+'</strong><small>'+sessions.map(s=>displaySessionName(s)+" · "+s.start).join(" / ")+'</small></span><span aria-hidden="true">›</span>';
+  btn.addEventListener("click",()=>openWeekDay(date));list.appendChild(btn);
+ }
+ showView("trackView");document.getElementById("pageTitle").textContent=trackLabels[key];
+}
+renderTrackMenu();
+const notesPanel=document.createElement("details");notesPanel.className="large-card practice-notes";
+notesPanel.innerHTML='<summary>Practice log & notes</summary><p class="section-description">Record DW score and conversation, guitar tempo / chord changes / song, Tang Soo Do control and instructor questions, book pages and film watched. Saved locally on this device.</p><textarea aria-label="Daily practice notes" id="ordoPracticeNotes" rows="5" style="width:100%;padding:12px;background:#101722;color:#fff;border:1px solid #64748b;border-radius:8px"></textarea><p id="notesSaved" class="section-description"></p>';
 timeline.parentElement.insertAdjacentElement("afterend",notesPanel);
 const notesKey="ordo-practice-log-"+dateString;const noteField=notesPanel.querySelector("textarea");noteField.value=localStorage.getItem(notesKey)||"";noteField.addEventListener("input",()=>{localStorage.setItem(notesKey,noteField.value);notesPanel.querySelector("#notesSaved").textContent="Saved on this device";});
 
 
 
 
-todayData.sessions.forEach(
-(sessionData,sessionIndex) => {
-if(!isActionable(sessionData))return;
-const compact=isProtectedAnchor(sessionData);
-const row =
-document.createElement(
-"article"
-);
 
-
-row.className = "session-row"+(compact?" protected-session":"");
-row.id="ordo-session-"+sessionIndex;
-
-
-
-const stepHTML =
-
-displayedSteps(sessionData).map(
-(step,stepIndex) => {
-
-
-const checkboxId =
-stepKeyFor(sessionIndex,stepIndex);
-
-
-const checked =
-savedState[
-checkboxId
-] === true;
-
-
-return `
-
-<label
-class="step-item
-${checked ? "checked" : ""}"
->
-
-<input
-type="checkbox"
-data-key="${checkboxId}"
-${checked ? "checked" : ""}
->
-
-<span>
-${step}
-</span>
-
-</label>
-
-`;
-
+function dayState(date){const key=formatDateKey(date);return key===dateString?savedState:readLocal("ordo-routine-v2-"+key,{});}
+function dayCanEdit(date){const key=formatDateKey(date);return key===dateString||(key<dateString&&localStorage.getItem("ordo-stage-history-"+key)!==null);}
+function activityStats(data,state){const rows=data.sessions.flatMap((s,i)=>isActionable(s)?displayedSteps(s).map((_,j)=>state[stepKeyFor(i,j,data)]===true):[]);return {completed:rows.filter(Boolean).length,total:rows.length,percent:rows.length?Math.round(rows.filter(Boolean).length/rows.length*100):0};}
+function updateDayCard(row,s,data,index,state){
+ const steps=displayedSteps(s),done=steps.filter((_,j)=>state[stepKeyFor(index,j,data)]===true).length;
+ row.querySelector(".activity-status").textContent=done===steps.length?"Complete":done+"/"+steps.length+" steps";
+ row.classList.toggle("activity-complete",done===steps.length);
 }
-).join("");
-
-
-
-let resourceHTML = "";
-
-
-if (
-sessionData.resource
-) {
-
-resourceHTML = `
-
-<div class="resource-assignment">
-
-<strong>
-📚 ASSIGNED RESOURCE
-</strong>
-
-<br>
-
-${sessionData.resource.assignment}
-
-<br>
-
-<a
-href="${sessionData.resource.url}"
-target="_blank"
-rel="noopener"
->
-${sessionData.resource.name} →
-</a>
-
-</div>
-
-`;
-
+function renderDayActivities(host,date){
+ const key=formatDateKey(date),data=storedSchedule(date)[date.getDay()],state=dayState(date),editable=dayCanEdit(date),isToday=key===dateString;
+ host.replaceChildren();
+ data.sessions.forEach((s,i)=>{
+  if(!isActionable(s))return;
+  const row=document.createElement("details");row.className="activity-card"+(isProtectedAnchor(s)?" protected-activity":"");
+  row.id=isToday?"ordo-session-"+i:"ordo-day-"+key+"-"+i;
+  const steps=displayedSteps(s);
+  const resource=s.resource?'<div class="resource-assignment"><strong>Assigned resource</strong><p>'+s.resource.assignment+'</p><a href="'+s.resource.url+'" target="_blank" rel="noopener">'+s.resource.name+' ↗</a></div>':"";
+  const gpt=window.GPT_LINKS?.[s.name];
+  const prompt=s.prompt&&gpt?'<details class="specialist-box"><summary>Optional coaching prompt</summary><div class="prompt-text">'+s.prompt+'</div><div class="button-row"><button class="copy-button" type="button">Copy prompt</button><a class="open-button" href="'+gpt+'" target="_blank" rel="noopener">Open coach ↗</a></div></details>':"";
+  row.innerHTML='<summary class="activity-summary"><span class="activity-icon">'+s.icon+'</span><span class="activity-main"><strong>'+displaySessionName(s)+'</strong><small>'+s.start+'–'+s.end+' · '+(s.name==="Sleep opportunity"?(s.minutes/60).toFixed(1)+" hr":s.minutes+" min")+'</small></span><span class="activity-status"></span><span class="activity-chevron" aria-hidden="true">›</span></summary><div class="activity-body">'+(isProtectedAnchor(s)?"":'<div class="session-objective"><strong>Objective:</strong> '+s.objective+'</div>')+'<div class="step-list">'+steps.map((step,j)=>{const k=stepKeyFor(i,j,data),checked=state[k]===true;return '<label class="step-item '+(checked?"checked":"")+'"><input type="checkbox" data-key="'+k+'" '+(checked?"checked ":"")+(editable?"":"disabled")+'><span>'+step+'</span></label>'}).join("")+'</div>'+resource+prompt+'</div>';
+  row.querySelectorAll('input[type="checkbox"]').forEach(box=>box.addEventListener("change",()=>{if(!editable)return;state[box.dataset.key]=box.checked;box.closest(".step-item").classList.toggle("checked",box.checked);localStorage.setItem("ordo-routine-v2-"+key,JSON.stringify(state));updateDayCard(row,s,data,i,state);if(isToday)updateProgress();else updateSelectedDayStats(data,state);}));
+  const copy=row.querySelector(".copy-button");if(copy)copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(s.prompt);copy.textContent="Copied ✓";}catch(e){copy.textContent="Copy unavailable; select the prompt text."}});
+  updateDayCard(row,s,data,i,state);
+  host.appendChild(row);
+ });
 }
-
-
-
-const gptURL =
-
-window.GPT_LINKS &&
-window.GPT_LINKS[
-sessionData.name
-]
-
-? window.GPT_LINKS[
-sessionData.name
-]
-
-: "";
-
-
-
-const openGPT =
-
-gptURL
-
-? `
-
-<a
-class="open-button"
-href="${gptURL}"
-target="_blank"
-rel="noopener"
->
-
-Open ${sessionData.name}
-
-</a>
-
-`
-
-: `
-
-<span class="no-link">
-
-Add this GPT's URL in config.js
-
-</span>
-
-`;
-
-
-
-row.innerHTML = `
-
-<div class="session-time">
-
-${sessionData.start}
-
-</div>
-
-
-<div
-class="session-card"
-data-session="${sessionIndex}"
->
-
-<div class="session-heading">
-
-<div class="session-heading-left">
-
-<div class="session-icon">
-
-${sessionData.icon}
-
-</div>
-
-<div>
-
-<h3>
-
-${displaySessionName(sessionData)}
-
-</h3>
-
-<div class="session-subtitle">
-
-${sessionData.start}
-–
-${sessionData.end}
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="duration-badge">
-
-${sessionData.minutes} MIN
-
-</div>
-
-</div>
-
-
-
-${compact?"":`<div class="session-objective"><strong>OBJECTIVE:</strong> ${sessionData.objective}</div>`}
-
-
-
-<div class="step-list">
-
-${stepHTML}
-
-</div>
-
-
-
-${resourceHTML}
-
-
-
-${sessionData.prompt && gptURL ? `<details class="specialist-box"><summary>Optional coaching prompt</summary>
-
-<div class="specialist-box-title">
-
-WHEN YOU OPEN THE SPECIALIST GPT, SEND THIS:
-
-</div>
-
-<div class="prompt-text">
-
-${sessionData.prompt}
-
-</div>
-
-
-<div class="button-row">
-
-<button
-class="copy-button"
-data-session-index="${sessionIndex}"
->
-
-Copy Prompt
-
-</button>
-
-${openGPT}
-
-</div>
-
-</details>` : ""}
-
-</div>
-
-`;
-
-
-timeline.appendChild(
-row
-);
-
+function updateSelectedDayStats(data,state){const x=activityStats(data,state);document.getElementById("selectedDayStats").textContent=x.completed+" / "+x.total+" steps · "+x.percent+"% complete";}
+function openWeekDay(date){
+ const key=formatDateKey(date);
+ if(key===dateString){showView("todayView");return;}
+ const data=storedSchedule(date)[date.getDay()],editable=dayCanEdit(date);
+ document.getElementById("selectedDayTitle").textContent=new Intl.DateTimeFormat(undefined,{weekday:"long",month:"long",day:"numeric"}).format(date);
+ document.getElementById("selectedDayNote").textContent=key>dateString?"Upcoming plan · preview only. Future lessons follow your current stages.":editable?"Saved day · you can update its checklist.":"Historical preview · no saved curriculum snapshot for this date.";
+ updateSelectedDayStats(data,dayState(date));
+ renderDayActivities(document.getElementById("selectedDayTimeline"),date);
+ renderReservedTime(document.getElementById("selectedDayReserved"),data);
+ const note=document.getElementById("selectedDayNotes"),stored=localStorage.getItem("ordo-practice-log-"+key);
+ note.textContent=stored||"No practice notes saved for this date.";
+ showView("dayView");
 }
-);
-
-
-
-/* =====================================================
-   CHECKBOX HANDLING
-===================================================== */
-
-
-document.querySelectorAll(
-'.step-item input[type="checkbox"]'
-).forEach(
-checkbox => {
-
-
-checkbox.addEventListener(
-"change",
-event => {
-
-
-const key =
-event.target.dataset.key;
-
-
-savedState[key] =
-event.target.checked;
-
-
-event.target
-.closest(
-".step-item"
-)
-.classList
-.toggle(
-"checked",
-event.target.checked
-);
-
-
-saveState();
-
-
-updateProgress();
-
+function renderReservedTime(host,data){
+ host.innerHTML=data.sessions.map(s=>'<div class="reserved-row"><span>'+s.start+'–'+s.end+'</span><span>'+displaySessionName(s)+'</span></div>').join("");
 }
-);
-
-}
-);
-
-
-
-/* =====================================================
-   COPY PROMPTS
-===================================================== */
-
-
-document.querySelectorAll(
-".copy-button"
-).forEach(
-button => {
-
-
-button.addEventListener(
-"click",
-async event => {
-
-
-const sessionIndex =
-
-Number(
-event.target.dataset.sessionIndex
-);
-
-
-const prompt =
-
-todayData.sessions[
-sessionIndex
-].prompt;
-
-
-await navigator.clipboard.writeText(
-prompt
-);
-
-
-const original =
-event.target.textContent;
-
-
-event.target.textContent =
-"Copied ✓";
-
-
-setTimeout(
-() => {
-
-event.target.textContent =
-original;
-
-},
-1200
-);
-
-}
-);
-
-}
-);
-
-
+renderDayActivities(timeline,now);
+renderReservedTime(document.getElementById("todayReserved"),todayData);
+document.getElementById("expandToday").addEventListener("click",()=>{const cards=[...timeline.querySelectorAll(".activity-card")],open=cards.some(v=>!v.open);cards.forEach(v=>v.open=open);document.getElementById("expandToday").textContent=open?"Collapse all":"Expand all";});
+document.getElementById("expandSelected").addEventListener("click",()=>{const cards=[...document.querySelectorAll("#selectedDayTimeline .activity-card")],open=cards.some(v=>!v.open);cards.forEach(v=>v.open=open);document.getElementById("expandSelected").textContent=open?"Collapse all":"Expand all";});
 
 /* =====================================================
    CLOSEOUT
@@ -1373,133 +1080,14 @@ updateProgress();
 ===================================================== */
 
 
-function updateProgress() {
-
-
-const taskBoxes =
-
-Array.from(
-
-document.querySelectorAll(
-'.step-item input[type="checkbox"]'
-)
-
-);
-
-
-const closeoutBoxes =
-
-Array.from(
-
-document.querySelectorAll(
-'.closeout-item input[type="checkbox"]'
-)
-
-);
-
-
-const allBoxes =
-
-[
-...taskBoxes,
-...closeoutBoxes
-];
-
-
-const completed =
-
-allBoxes.filter(
-box =>
-box.checked
-).length;
-
-
-const total =
-allBoxes.length;
-
-
-const percentage =
-
-total
-
-? Math.round(
-completed / total * 100
-)
-
-: 0;
-
-
-
-document.getElementById(
-"progressLabel"
-).textContent =
-
-percentage + "%";
-
-
-
-document.getElementById(
-"progressBar"
-).style.width =
-
-percentage + "%";
-
-
-
-document.getElementById(
-"completedCount"
-).textContent =
-
-completed;
-
-
-
-todayData.sessions.forEach(
-(_,sessionIndex) => {
-
-
-const card =
-
-document.querySelector(
-
-`.session-card[data-session="${sessionIndex}"]`
-
-);
-
-
-if(!card)return;
-const boxes =
-
-Array.from(
-
-card.querySelectorAll(
-'input[type="checkbox"]'
-)
-
-);
-
-
-const complete =
-
-boxes.length > 0 &&
-
-boxes.every(
-box =>
-box.checked
-);
-
-
-card.classList.toggle(
-"session-complete",
-complete
-);
-
+function updateProgress(){
+ const x=activityStats(todayData,savedState);
+ document.getElementById("progressLabel").textContent=x.percent+"%";
+ document.getElementById("progressBar").style.width=x.percent+"%";
+ document.getElementById("completedCount").textContent=x.completed;
+ const dashboard=document.getElementById("dashboardTodaySummary");
+ if(dashboard)dashboard.textContent=x.completed+" / "+x.total+" steps complete · "+todayData.sessions.filter(isActionable).length+" activities";
 }
-);
-
-
-}
-
 
 updateProgress();
 
@@ -1810,218 +1398,25 @@ document.getElementById(
 
 
 
-function renderWeeklySchedule() {
-
-
-weeklyGrid.innerHTML = "";
-
-
-const monday =
-getMonday(
-now
-);
-
-
-const weekDays = [
-
-{
-scheduleDay: 1,
-offset: 0
-},
-
-{
-scheduleDay: 2,
-offset: 1
-},
-
-{
-scheduleDay: 3,
-offset: 2
-},
-
-{
-scheduleDay: 4,
-offset: 3
-},
-
-{
-scheduleDay: 5,
-offset: 4
-},
-
-{
-scheduleDay: 6,
-offset: 5
-},
-
-{
-scheduleDay: 0,
-offset: 6
+let weekOffset=0;
+function renderWeeklySchedule(){
+ weeklyGrid.replaceChildren();
+ const monday=addDays(getMonday(now),weekOffset*7);
+ const end=addDays(monday,6);
+ const fmt=new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric"});
+ document.getElementById("weekRange").textContent=fmt.format(monday)+" – "+fmt.format(end);
+ for(let i=0;i<7;i++){
+ const date=addDays(monday,i),data=storedSchedule(date)[date.getDay()],status=getDayStatus(date,date.getDay()),isToday=formatDateKey(date)===dateString;
+ const card=document.createElement("button");card.type="button";card.className="day-button"+(isToday?" current-day":"");
+ const count=data.sessions.filter(isActionable).length;
+ const focus=[...new Set(data.sessions.filter(s=>s.track||s.name==="Film Index"||s.name==="Jim Stoppani workout").map(s=>s.track?trackLabels[s.track]:s.name==="Film Index"?"Film":"Workout"))].join(" · ");
+ card.innerHTML='<span><strong>'+data.day+(isToday?' <small class="today-mark">TODAY</small>':'')+'</strong><small>'+fmt.format(date)+' · '+count+' activities</small><small>'+focus+'</small></span><span class="day-status">'+(status.status==="future"?"Upcoming":status.percentage+"%")+' <span aria-hidden="true">›</span></span>';
+ card.addEventListener("click",()=>openWeekDay(date));weeklyGrid.appendChild(card);
+ }
 }
-
-];
-
-
-weekDays.forEach(
-item => {
-
-
-const actualDate=addDays(monday,item.offset);
-const data=storedSchedule(actualDate)[item.scheduleDay];
-
-
-const status =
-getDayStatus(
-actualDate,
-item.scheduleDay
-);
-
-
-const isToday =
-
-formatDateKey(
-actualDate
-) ===
-formatDateKey(
-now
-);
-
-
-const card =
-document.createElement(
-"article"
-);
-
-
-card.className =
-
-"week-card" +
-
-(
-isToday
-? " today"
-: ""
-);
-
-
-const sessions =
-
-data.sessions.filter(isActionable).map(
-sessionItem => `
-
-<div class="week-session">
-
-<span class="week-time">
-
-${sessionItem.start}
-
-</span>
-
-${sessionItem.icon}
-${displaySessionName(sessionItem)}
-
-<span class="week-gpt">
-
-${sessionItem.minutes} min
-
-</span>
-
-</div>
-
-`
-).join("");
-
-
-const dateLabel =
-
-new Intl.DateTimeFormat(
-undefined,
-{
-month:
-"short",
-
-day:
-"numeric"
-}
-).format(
-actualDate
-);
-
-
-card.innerHTML = `
-
-<div class="week-status-row">
-
-<div class="week-status">
-
-<span
-class="status-dot ${status.status}"
-></span>
-
-${status.label}
-
-</div>
-
-<div class="week-progress-percent">
-
-${
-status.status === "future"
-? "—"
-: status.percentage + "%"
-}
-
-</div>
-
-</div>
-
-
-<div class="week-mini-progress">
-
-<div
-class="week-mini-fill ${status.status}"
-style="width:
-${
-status.status === "future"
-? 0
-: status.percentage
-}%;
-"
-></div>
-
-</div>
-
-
-<div class="week-day">
-
-${data.day}
-
-<br>
-
-<span class="week-gpt">
-
-${dateLabel}
-
-</span>
-
-</div>
-
-
-${sessions}
-<details class="routine-details"><summary>Full schedule & reserved time</summary>${data.sessions.map(s=>`<div class="week-session"><span class="week-time">${s.start}–${s.end}</span><span>${displaySessionName(s)}</span></div>`).join("")}</details>
-
-`;
-
-
-weeklyGrid.appendChild(
-card
-);
-
-}
-);
-
-}
-
-
+document.getElementById("weekPrev").addEventListener("click",()=>{weekOffset--;renderWeeklySchedule();});
+document.getElementById("weekNext").addEventListener("click",()=>{weekOffset++;renderWeeklySchedule();});
+document.getElementById("weekCurrent").addEventListener("click",()=>{weekOffset=0;renderWeeklySchedule();});
 
 renderWeeklySchedule();
 
@@ -2303,3 +1698,6 @@ card
 
 }
 );
+
+// Preserve the destination when changing a curriculum stage.
+try{const route=sessionStorage.getItem("ordo-return-view");sessionStorage.removeItem("ordo-return-view");if(route&&route.startsWith("track:"))openTrack(route.slice(6));}catch(e){}
