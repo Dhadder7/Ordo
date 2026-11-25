@@ -111,19 +111,25 @@ function S(icon,name,start,end,minutes,objective,steps,resource=null,prompt="",t
 return {icon,name,start,end,minutes,objective,steps,resource,prompt,track,stage};
 }
 const res=(name,url,assignment)=>({name,url,assignment});
+const GOETHE_A1="https://ankiweb.net/shared/info/293204297", SMARTER_A1="https://ankiweb.net/shared/info/207285542", GOETHE_RESERVE="https://ankiweb.net/shared/decks?search=Goethe%20Institute%20A1%20Wordlist%20v2";
+const ANKI_DECKS="https://ankiweb.net/decks";
+const primaryDeck="Goethe Institute → A1 Wordlist";
 function germanReview(start,end,minutes,stage,first=false){
-if(first)return S("🇩🇪","German Coach",start,end,minutes,"Day 1 · Set up free AnkiWeb and learn three cards. No prior review required.",[
-"Open "+link("https://ankiweb.net/account/signup","AnkiWeb sign up (free)")+" in Safari. Create an account, verify your email if prompted, then "+link("https://ankiweb.net/account/login","log in")+". Already have an account? Just log in.",
-"Open "+link("https://ankiweb.net/decks","Decks")+" → Create Deck; name it German A1. If that deck exists, select it instead.",
-"Tap Add. Choose German A1 and Basic (if shown). Enter Front: Hallo! / Back: Hello! Tap Add to save. Repeat for Guten Morgen! / Good morning! and Tschüss! / Bye! Do not add duplicates.",
-"Return to Decks → German A1 → tap the deck or Study Now. Say each answer before Show Answer. Select Again if incorrect, Good if correct. Study the available cards until finished.",
-"Success: German A1 deck exists, three cards saved, and you can recall the greetings aloud. If setup exceeds 15 minutes, finish setup first; resume next session."
-],res("Open free AnkiWeb","https://ankiweb.net/","Use the browser; no paid iPhone app or download required."),"","german",stage);
-return S("🇩🇪","German Coach",start,end,minutes,"Spaced retrieval — build words you can actually use.",[
-"Open "+link("https://ankiweb.net/decks","AnkiWeb Decks")+" → German A1 → tap the deck or Study Now. Say each answer before Show Answer; choose Again if wrong or Good if correct. Review due cards (about 20; do not force a quota). If the deck does not exist, follow Day 1 setup first.",
-"Tap Add → German A1 → Basic. Enter up to 3 expressions from the last completed DW lesson: German on Front, meaning on Back; tap Add to save each. Include article and plural for nouns; avoid duplicates.",
-"Say five reviewed phrases aloud; mark difficult items for the next session. Use the full 15 minutes, or stop when due cards are done."
-],res("Open AnkiWeb","https://ankiweb.net/decks","Use the free browser-based deck."),"","german",stage);}
+const setup="One-time setup if not imported: on a computer install "+link("https://apps.ankiweb.net/","free Anki Desktop")+", sign in with your AnkiWeb account and sync existing cards first. Download "+link(GOETHE_A1,"Goethe-Zertifikat A1 (primary)")+" and "+link(SMARTER_A1,"SmarterGerman A1 Illustrated (supplementary)")+" or use your saved .apkg files. In Anki Desktop choose File → Import for each, then Sync including media. Do not import the reserve deck unless needed.";
+const options="In Anki Desktop, set separate deck option presets: primary New cards/day = 3; supplementary = 0 initially (enable up to 3 only for a targeted weekend session). Review due cards first; do not force 20 or add new cards when reviews are unfinished.";
+if(first)return S("🇩🇪","German Coach",start,end,minutes,"Day 1 · Import the shared A1 decks and study your first three primary cards.",[
+"Open "+link("https://ankiweb.net/account/signup","AnkiWeb sign up (free)")+" or "+link("https://ankiweb.net/account/login","log in")+". If you already created your account, this is complete.",
+"Open "+link(ANKI_DECKS,"Decks")+". If you previously made an empty German A1 deck, leave it alone; it is not needed for shared-deck study.",
+setup,
+options+" On iPhone open "+link(ANKI_DECKS,"AnkiWeb Decks")+" → "+primaryDeck+" → study. Say the answer before revealing it; listen to available audio, repeat aloud, then select Again if wrong or Good if correct. Study up to three new cards.",
+"Success: primary deck appears on AnkiWeb, audio works where supported, and you can recall your first three cards aloud. If setup takes longer than 15 minutes, finish setup first and resume study next session."
+],res("Study primary deck on AnkiWeb",ANKI_DECKS,"Choose Goethe Institute → A1 Wordlist. No paid iPhone app needed after desktop import and sync."),"","german",stage);
+return S("🇩🇪","German Coach",start,end,minutes,"Spaced retrieval — Goethe A1 vocabulary and active recall.",[
+"Open "+link(ANKI_DECKS,"AnkiWeb Decks")+" → "+primaryDeck+". If missing: "+setup,
+"Review due cards first (aim for about 20 if due, within 15 minutes). Say the answer before revealing it; use Again for incorrect recall and Good for correct recall. Listen and repeat available audio; include noun articles and plural forms.",
+"Study up to three new primary cards only if due reviews are finished. Say one example sentence aloud and connect it to the current DW Nicos Weg lesson when relevant. No manual flashcard creation required.",
+"Success: complete due reviews within available time; recall the new items and note any difficult words. If reviews remain, skip new cards and resume next session."
+],res("Study primary deck on AnkiWeb",ANKI_DECKS,"Goethe Institute → A1 Wordlist; SmarterGerman is supplementary, not a second daily quota."),"","german",stage);}
 function germanLesson(day,stage,start,end,minutes){
 const [unit,lessonText,goal]=germanUnits[stage-1], lessons=lessonText.split("|"), n=day-1;
 const core= n>=0&&n<4;
@@ -142,13 +148,13 @@ let steps=core?[
 "15–25 min: role-play the weekly goal with German Coach. Answer in German first; ask for corrections after each turn.",
 "25–35 min: write five corrected sentences and say them aloud. Aim for 8/10 recalled words and 4/5 comprehensible sentences."
 ]:day===6?[
-"0–15 min: review Anki due cards; retrieve at least ten words without notes.",
+"0–10 min: open "+link(ANKI_DECKS,"AnkiWeb Decks")+" → "+primaryDeck+"; review due cards first. 10–15 min: if reviews are finished, use SmarterGerman A1 - Illustrated vocabulary for up to three relevant or difficult cards (pictures, audio and sentences); skip duplicate words you already know. If no supplementary cards are available, use DW vocabulary instead.",
 "15–35 min: revisit all four DW videos; listen first without subtitles, then verify with the transcript.",
 "35–55 min: complete outstanding exercises or repeat weak tasks; review grammar and create eight sentences.",
 "55–70 min: speak with German Coach about the unit goal; complete a 2–3 minute dialogue.",
 "70–75 min: record errors, useful phrases and what to repeat tomorrow."
 ]:[
-"0–15 min: review due Anki cards and 15 words sampled from the unit.",
+"0–15 min: open "+link(ANKI_DECKS,"AnkiWeb Decks")+" → "+primaryDeck+"; review due cards and sample unit words. Use the "+link(GOETHE_RESERVE,"Goethe Institute A1 v2 reserve deck")+" only for alternative example sentences when needed; no separate daily review quota.",
 "15–35 min: redo a selection of DW exercises without hints; record first-attempt accuracy.",
 "35–55 min: role-play the unit goal with German Coach; attempt at least eight exchanges in German.",
 "55–65 min: write five original sentences; correct after attempting.",
@@ -269,7 +275,7 @@ function storedSchedule(date){const key=formatDateKey(date), today=formatDateKey
 
 
 const resources = [
-{"area":"GERMAN","name":"AnkiWeb (free browser)","description":"Create your deck, add cards and study in Safari; no download required.","url":"https://ankiweb.net/"},{"area":"GERMAN","name":"Easy German","description":"Authentic listening practice.","url":"https://www.youtube.com/@EasyGerman"},{"area":"GUITAR","name":"JustinGuitar Grade 1","description":"Structured modules, demonstrations and exercises.","url":"https://www.justinguitar.com/classes/beginner-guitar-course-grade-one"},{"area":"GUITAR","name":"JustinGuitar Songs","description":"Song lessons and chord diagrams.","url":"https://www.justinguitar.com/songs"},{"area":"GUITAR","name":"Minor pentatonic","description":"Scale shapes and blues phrasing.","url":"https://www.justinguitar.com/modules/minor-pentatonic-scale"},{"area":"TANG SOO DO","name":"Kang Uk Lee book contents","description":"ISBN-matched contents and page ranges; verify against your copy.","url":"https://www.kriso.lv/tang-soo-do-ultimate-guide-korean-db-9780865681705.html"},{"area":"TANG SOO DO","name":"Basic Form One tutorial","description":"Supplementary slow form demo; compare with book and instructor.","url":"https://www.youtube.com/watch?v=b5FzgKp9rg0"},{"area":"FITNESS","name":"Jim Stoppani","description":"Workout programming and tracking are handled outside ORDO.","url":"https://www.jimstoppani.com/"},
+{"area":"GERMAN","name":"AnkiWeb (free browser)","description":"Study imported shared decks in Safari. Choose Goethe Institute → A1 Wordlist.","url":"https://ankiweb.net/decks"},{"area":"GERMAN","name":"Anki Desktop (one-time import)","description":"Free computer app: import your .apkg files, set deck options and sync cards/media to AnkiWeb.","url":"https://apps.ankiweb.net/"},{"area":"GERMAN","name":"Goethe-Zertifikat A1 — primary","description":"804 notes / 1,608 cards. Use for daily due reviews and up to 3 new cards.","url":"https://ankiweb.net/shared/info/293204297"},{"area":"GERMAN","name":"SmarterGerman A1 Illustrated — supplementary","description":"745 notes / 1,490 cards. Weekend targeted practice with pictures, pronunciation and sentences; no duplicate daily quota.","url":"https://ankiweb.net/shared/info/207285542"},{"area":"GERMAN","name":"Goethe Institute A1 v2 — reserve","description":"926 notes / 1,852 cards; substantial overlap with primary. Use only for alternative examples if needed. Search shared deck by exact title.","url":"https://ankiweb.net/shared/decks?search=Goethe%20Institute%20A1%20Wordlist%20v2"},{"area":"GERMAN","name":"Easy German","description":"Authentic listening practice.","url":"https://www.youtube.com/@EasyGerman"},{"area":"GUITAR","name":"JustinGuitar Grade 1","description":"Structured modules, demonstrations and exercises.","url":"https://www.justinguitar.com/classes/beginner-guitar-course-grade-one"},{"area":"GUITAR","name":"JustinGuitar Songs","description":"Song lessons and chord diagrams.","url":"https://www.justinguitar.com/songs"},{"area":"GUITAR","name":"Minor pentatonic","description":"Scale shapes and blues phrasing.","url":"https://www.justinguitar.com/modules/minor-pentatonic-scale"},{"area":"TANG SOO DO","name":"Kang Uk Lee book contents","description":"ISBN-matched contents and page ranges; verify against your copy.","url":"https://www.kriso.lv/tang-soo-do-ultimate-guide-korean-db-9780865681705.html"},{"area":"TANG SOO DO","name":"Basic Form One tutorial","description":"Supplementary slow form demo; compare with book and instructor.","url":"https://www.youtube.com/watch?v=b5FzgKp9rg0"},{"area":"FITNESS","name":"Jim Stoppani","description":"Workout programming and tracking are handled outside ORDO.","url":"https://www.jimstoppani.com/"},
 
 {
 
