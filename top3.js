@@ -7,7 +7,7 @@
   var today = new Date();
   var day = schedule[today.getDay()];
   var dayKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");
-  var selectionKey = "ordo-top3-v2-" + dayKey + "-" + [stages.german,stages.guitar,stages.tang].join("-");
+  var selectionKey = "ordo-top3-v2-" + dayKey + "-" + [stages.german,stages.guitar,stages.tang].join("-") + "-" + day.sessions.map(function(s){return String(s._originalIndex??s.name)+":"+String(s._variant||"");}).join("_");
   var progressKey = storageKey;
   var preferenceKey = "daniel-12-week-priorities";
   var topics = [
