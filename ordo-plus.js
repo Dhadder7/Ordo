@@ -46,7 +46,7 @@ function seq(v,length,steps){if(!v||length<=0)return;put(v,t,length,steps);t+=le
 function synthetic(id,name,icon,objective,steps){return {name,icon,objective,steps,_originalIndex:id,prompt:"",resource:null}}
 function spare(until,name="Buffer / free time"){if(until>t)seq(synthetic("buffer-"+t,name,"☕","Keep this margin available.",["Use for family, delays or downtime; no catch-up requirement."]),until-t)}
 function shortReview(v){return v?.objective.startsWith("Day 1")?v.steps:["Open <a href=\"https://ankiweb.net/decks\" target=\"_blank\" rel=\"noopener\">AnkiWeb Decks ↗</a> → Goethe Institute → A1 Wordlist. If missing, follow shared-deck import instructions: <a href=\"https://apps.ankiweb.net/\" target=\"_blank\" rel=\"noopener\">free Anki Desktop ↗</a> and <a href=\"https://ankiweb.net/shared/info/293204297\" target=\"_blank\" rel=\"noopener\">primary Goethe A1 deck ↗</a> → import and sync.","Review due cards for 10 minutes; say each answer before revealing, choose Again if wrong or Good if correct. Add up to three new primary cards only if reviews are finished and time remains."]}
-function shortLesson(v){return [v.steps[0],"Watch or resume the assigned video and exercises for the remaining time; retrieve three phrases in the final 5 minutes. Record the last completed exercise."]}
+function shortLesson(v){if(v.germanDay>=5)return ["Open the current A1 unit and revisit missed exercises or complete the assessment; use the full assignment on a normal day.","Record what remains; do not queue the next assignment or advance the stage until the full target is met."];return [v.steps[0],"Watch or resume the assigned video and exercises for the remaining time; retrieve three phrases in the final 5 minutes. Record the last completed exercise; do not queue the next lesson until the full assignment is complete."]}
 const reduced=mode!=="normal";
 const study=items.filter(v=>v.track==="german");
 if(weekday){
@@ -104,14 +104,14 @@ const pass=record.gate===true;
 return {pass,reason:pass?"You confirmed the specific stage performance standard.":"Repeat the current stage. Revisit the weakest exercise and retest the exact gate."};
 }
 function getRecords(){const r=read(METRICS,[]);return Array.isArray(r)?r.filter(v=>v&&typeof v==="object"&&["german","guitar","tang","reading","film","fitness"].includes(v.track)&&/^\d{4}-\d{2}-\d{2}$/.test(v.date||"")):[]}
-function recentAssessment(track,stage){return getRecords().filter(r=>r.track===track&&r.stage===stage).sort((a,b)=>String(b.created).localeCompare(String(a.created)))[0]}
+function recentAssessment(track,stage){return getRecords().filter(r=>r.track===track&&r.stage===stage&&r.date>="2026-11-26").sort((a,b)=>String(b.created).localeCompare(String(a.created)))[0]}
 function db(){return new Promise((resolve,reject)=>{if(!window.indexedDB){reject(Error("Local recording storage is not available in this browser."));return}const r=indexedDB.open("ordo-recordings-v1",1);r.onupgradeneeded=()=>r.result.createObjectStore("samples",{keyPath:"id"});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
 async function mediaOp(mode,action){const d=await db();return new Promise((resolve,reject)=>{const tx=d.transaction("samples",mode),st=tx.objectStore("samples");let result;try{const req=action(st);req.onsuccess=()=>result=req.result;req.onerror=()=>reject(req.error)}catch(e){d.close();reject(e);return}tx.oncomplete=()=>{d.close();resolve(result)};tx.onerror=()=>{d.close();reject(tx.error)};tx.onabort=()=>{d.close();reject(tx.error)}})}
 const mediaAll=()=>mediaOp("readonly",s=>s.getAll());
 const mediaPut=v=>mediaOp("readwrite",s=>s.put(v));
 const mediaDelete=id=>mediaOp("readwrite",s=>s.delete(id));
 const mediaRead=id=>mediaOp("readonly",s=>s.get(id));
-function portableKey(k){return /^(ordo-(routine-v2-|stage-history-|settings-history-|practice-log-|top3-v[12]-|curriculum-stages-v2$|day-one-20261125$|prelaunch-stages-20261125$|settings-v3$|metrics-v3$)|daniel-development-|daniel-12-week-priorities$)/.test(k)}
+function portableKey(k){return /^(ordo-(routine-v2-|stage-history-|settings-history-|practice-log-|top3-v[12]-|curriculum-stages-v2$|day-one-20261125$|prelaunch-stages-20261125$|day-one-20261126$|prelaunch-stages-20261126$|german-a1-position-v1$|german-day-history-|settings-v3$|metrics-v3$)|daniel-development-|daniel-12-week-priorities$)/.test(k)}
 function collect(){const data={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(portableKey(k))data[k]=localStorage.getItem(k)}return data}
 function saveFile(value,name,type="application/json"){const url=URL.createObjectURL(new Blob([value],{type})),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}
 function asData(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.readAsDataURL(blob)})}
