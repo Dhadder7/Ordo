@@ -7,8 +7,8 @@
   var today = new Date();
   var day = schedule[today.getDay()];
   var dayKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");
-  var selectionKey = "ordo-top3-v1-" + dayKey;
-  var progressKey = "daniel-development-" + dayKey;
+  var selectionKey = "ordo-top3-v2-" + dayKey + "-" + [stages.german,stages.guitar,stages.tang].join("-");
+  var progressKey = storageKey;
   var preferenceKey = "daniel-12-week-priorities";
   var topics = [
     ["german", ["german", "language", "deutsch"]],
@@ -18,7 +18,7 @@
     ["philosophy", ["philosophy", "philosophical", "stoic"]],
     ["history", ["history", "historian", "historical"]],
     ["bible", ["bible", "biblical", "christianity", "christian"]],
-    ["music", ["music", "listening"]],
+    ["music", ["music", "guitar", "listening"]],
     ["constitution", ["constitution", "government", "civics"]],
     ["learning", ["learning", "reading", "knowledge", "retention", "memory"]],
     ["doi", ["doi", "weekly review", "integration", "priorities"]]
@@ -48,7 +48,7 @@
   function completedSteps(sessionIndex) {
     var state = readJSON(progressKey, {});
     return day.sessions[sessionIndex].steps.filter(function (_, stepIndex) {
-      return state["s-" + sessionIndex + "-step-" + stepIndex] === true;
+      return state[stepKeyFor(sessionIndex,stepIndex,day)] === true;
     }).length;
   }
 
@@ -57,13 +57,18 @@
     return day.sessions.map(function (session, index) {
       var kinds = topicsFor(session.name + " " + session.objective);
       var score = 30 - index;
+      if (session.name === "Family dinner") score += 180;
+      if (session.name === "Sleep opportunity") score += 180;
+      if (session.track === "german" && session.minutes >= 30) score += 100;
+      if (session.name === "Jim Stoppani workout") score += 75;
+      if (["Morning setup","Get ready","Breakfast","Commute and arrival","Work + breaks","Commute home","Home and dinner prep","Cleanup / household","Free time","Bed routine","Morning / breakfast","Shower / reset","Family, errands and lunch","Flexible family / dinner prep"].includes(session.name)) score -= 150;
       score += overlapWeight(kinds, prefs.primary, 40);
       score += overlapWeight(kinds, prefs.secondary, 18);
       score += overlapWeight(kinds, day.priority.primary, 14);
       score += overlapWeight(kinds, day.priority.secondary, 7);
       score -= overlapWeight(kinds, prefs.maintenance, 4);
       if (session.name === "DOI" && today.getDay() === 0) score += 25;
-      if (completedSteps(index) === session.steps.length) score -= 200;
+      if (completedSteps(index) === session.steps.length) score -= 300;
       return { index: index, score: score };
     }).sort(function (a, b) {
       return b.score - a.score || a.index - b.index;
@@ -91,6 +96,9 @@
   function shortTitle(sessionData) {
     var labels = {
       "German Coach": "Practice German",
+      "Jim Stoppani workout": "Jim Stoppani workout",
+      "Family dinner": "Family dinner",
+      "Sleep opportunity": "Protect bedtime",
       "Bible & Christianity Scholar": "Study the Bible",
       "Learning, Reading & Knowledge Coach": "Review key learning",
       "DOI": "Plan next week (DOI)",
@@ -99,7 +107,7 @@
       "Chess Coach": "Practice chess",
       "Philosophy Mentor": "Analyze philosophy",
       "Historian & Graduate History Coach": "Write history analysis",
-      "Music Mentor": "Study music",
+      "Music Mentor": "Practice guitar",
       "Constitution & American Government Tutor": "Study the Constitution"
     };
     return labels[sessionData.name] || sessionData.name.slice(0, 36);
