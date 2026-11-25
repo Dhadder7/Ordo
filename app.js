@@ -772,10 +772,7 @@ renderWeeklySchedule();
 }
 
 
-window.scrollTo({
-top: 0,
-behavior: "smooth"
-});
+window.scrollTo({top:0,behavior:"instant"});
 
 
 closeMenu();
@@ -926,7 +923,7 @@ function openTrack(key){
  const host=document.getElementById("trackContent"), stage=stages[key];
  host.innerHTML='<section class="large-card"><div class="section-kicker">CURRENT STAGE</div><h2>'+trackIcons[key]+' '+trackLabels[key]+'</h2><h3>'+trackTitle(key,stage)+'</h3><p class="section-description">Stage '+stage+' of '+trackLimits[key]+'</p><div class="session-objective"><strong>Mastery standard:</strong> '+trackGate(key,stage)+'</div><label>Choose your current stage<select id="trackStageSelect" aria-label="Current stage">'+Array.from({length:trackLimits[key]},(_,i)=>'<option value="'+(i+1)+'" '+(i+1===stage?'selected':'')+'>'+ (i+1)+' · '+trackTitle(key,i+1)+'</option>').join("")+'</select></label><button class="primary-button" id="applyTrackStage">Apply stage</button><p class="section-description">Advance only after the mastery standard is met. Your other tracks and earlier progress remain unchanged.</p></section><section class="large-card"><h2>Scheduled practice this week</h2><div id="trackSessions"></div><p class="section-description">Tap a day to open the complete practice checklist and assigned resources. Future days are previews.</p></section>';
  const chooser=host.querySelector("#trackStageSelect");
- host.querySelector("#applyTrackStage").addEventListener("click",()=>{const next=normalizeStages({...stages,[key]:Number(chooser.value)});localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(next));sessionStorage.setItem("ordo-return-view","track:"+key);location.reload();});
+ host.querySelector("#applyTrackStage").addEventListener("click",()=>{const next=normalizeStages({...stages,[key]:Number(chooser.value)});localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(next));try{sessionStorage.setItem("ordo-return-view","track:"+key);}catch(e){}location.reload();});
  const list=host.querySelector("#trackSessions"),monday=getMonday(now);
  for(let i=0;i<7;i++){
   const date=addDays(monday,i),data=storedSchedule(date)[date.getDay()], sessions=data.sessions.filter(s=>s.track===key);
@@ -981,7 +978,7 @@ function openWeekDay(date){
  document.getElementById("selectedDayTitle").textContent=new Intl.DateTimeFormat(undefined,{weekday:"long",month:"long",day:"numeric"}).format(date);
  document.getElementById("selectedDayNote").textContent=key>dateString?"Upcoming plan · preview only. Future lessons follow your current stages.":editable?"Saved day · you can update its checklist.":"Historical preview · no saved curriculum snapshot for this date.";
  updateSelectedDayStats(data,dayState(date));
- renderDayActivities(document.getElementById("selectedDayTimeline"),date);
+ renderDayActivities(document.getElementById("selectedDayTimeline"),date);document.getElementById("expandSelected").textContent="Expand all";
  renderReservedTime(document.getElementById("selectedDayReserved"),data);
  const note=document.getElementById("selectedDayNotes"),stored=localStorage.getItem("ordo-practice-log-"+key);
  note.textContent=stored||"No practice notes saved for this date.";
@@ -1124,8 +1121,7 @@ return;
 // Reset the visible tasks only; keep old routine data, other stages and historical notes.
 todayData.sessions.forEach((s,i)=>{if(isActionable(s))displayedSteps(s).forEach((_,j)=>delete savedState[stepKeyFor(i,j)]);});
 saveState();
-
-
+try{sessionStorage.setItem("ordo-return-view","view:todayView");}catch(e){}
 location.reload();
 
 }
@@ -1700,4 +1696,4 @@ card
 );
 
 // Preserve the destination when changing a curriculum stage.
-try{const route=sessionStorage.getItem("ordo-return-view");sessionStorage.removeItem("ordo-return-view");if(route&&route.startsWith("track:"))openTrack(route.slice(6));}catch(e){}
+try{const route=sessionStorage.getItem("ordo-return-view");sessionStorage.removeItem("ordo-return-view");if(route&&route.startsWith("track:"))openTrack(route.slice(6));else if(route&&route.startsWith("view:"))showView(route.slice(5));}catch(e){}
