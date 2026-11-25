@@ -47,7 +47,7 @@
 
   function completedSteps(sessionIndex) {
     var state = readJSON(progressKey, {});
-    return day.sessions[sessionIndex].steps.filter(function (_, stepIndex) {
+    return displayedSteps(day.sessions[sessionIndex]).filter(function (_, stepIndex) {
       return state[stepKeyFor(sessionIndex,stepIndex,day)] === true;
     }).length;
   }
@@ -68,9 +68,9 @@
       score += overlapWeight(kinds, day.priority.secondary, 7);
       score -= overlapWeight(kinds, prefs.maintenance, 4);
       if (session.name === "DOI" && today.getDay() === 0) score += 25;
-      if (completedSteps(index) === session.steps.length) score -= 300;
-      return { index: index, score: score };
-    }).sort(function (a, b) {
+      if (completedSteps(index) === displayedSteps(session).length) score -= 300;
+      return { index: index, score: score, actionable:isActionable(session) };
+    }).filter(function(item){return item.actionable;}).sort(function (a, b) {
       return b.score - a.score || a.index - b.index;
     }).slice(0, Math.min(3, day.sessions.length))
       .map(function (item) { return item.index; });
@@ -80,7 +80,7 @@
     var existing = readJSON(selectionKey, null);
     if (existing && Array.isArray(existing.indices) &&
         existing.indices.length === Math.min(3, day.sessions.length) &&
-        existing.indices.every(function (i) { return Number.isInteger(i) && i >= 0 && i < day.sessions.length; }) &&
+        existing.indices.every(function (i) { return Number.isInteger(i) && i >= 0 && i < day.sessions.length && isActionable(day.sessions[i]); }) &&
         new Set(existing.indices).size === existing.indices.length) {
       return existing.indices;
     }
@@ -126,7 +126,7 @@
   section.className = "ordo-top3 large-card";
   section.innerHTML =
     '<div class="ordo-top3-heading"><div><div class="section-kicker">FOCUS FOR TODAY</div>' +
-    '<h2>Today\'s Top 3</h2><p class="section-description">Auto-selected from today\'s plan, your 12-week priorities and recorded progress.</p></div>' +
+    '<h2>Today\'s Top 3</h2><p class="section-description">Optional Reminders export. Tap a title to jump to its actual activity.</p></div>' +
     '<button type="button" class="secondary-button" id="ordoTop3Refresh">Recalculate</button></div>' +
     '<ol id="ordoTop3List" class="ordo-top3-list" aria-live="polite"></ol>' +
     '<div class="ordo-top3-actions"><button class="primary-button" type="button" id="ordoTop3Send">Send to Reminders</button>' +
@@ -150,12 +150,12 @@
     list.replaceChildren();
     selected.forEach(function (index) {
       var s = day.sessions[index];
-      var count = completedSteps(index), total = s.steps.length;
+      var count = completedSteps(index), total = displayedSteps(s).length;
       var item = document.createElement("li");
       item.className = "ordo-top3-item";
       if (count === total) item.classList.add("ordo-top3-complete");
-      var title = document.createElement("strong");
-      title.textContent = s.icon + " " + s.name;
+      var title = document.createElement("button");
+      title.type="button";title.className="secondary-button";title.textContent = s.icon + " " + displaySessionName(s)+" →";title.addEventListener("click",function(){showView("todayView");requestAnimationFrame(function(){document.getElementById("ordo-session-"+index)?.scrollIntoView({block:"start",behavior:"smooth"});});});
       var objective = document.createElement("span");
       objective.textContent = s.objective;
       var status = document.createElement("small");
