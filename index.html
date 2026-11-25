@@ -24,6 +24,9 @@ href="styles.css"
 <link rel="stylesheet" href="top3.css">
 <style>
 .plus-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:12px 0}.plus-grid label,#enhancementsRoot form>label,#enhancementsRoot section>label{display:block;color:var(--text-soft);font-size:14px;margin:10px 0}.plus-grid input,.plus-grid select,#enhancementsRoot textarea,#enhancementsRoot form>label input,#enhancementsRoot section>label input[type=file],#ordoMetricFields>label input[type=number]{width:100%;padding:10px;background:var(--background);color:var(--text);border:1px solid var(--border);border-radius:8px;font:inherit;margin-top:5px;min-width:0}#enhancementsRoot textarea{min-height:80px}.plus-inline{display:flex!important;align-items:center;gap:10px}.plus-inline input{width:auto!important;accent-color:var(--gold)}.plus-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.plus-result{border:1px solid var(--border);border-radius:10px;padding:12px;margin:10px 0;overflow-wrap:anywhere}.plus-result p{margin:6px 0;color:var(--text-soft)}.plus-table{overflow-x:auto}.plus-table table{border-collapse:collapse;width:100%;min-width:340px;font-size:14px}.plus-table th,.plus-table td{border-bottom:1px solid var(--border);text-align:left;padding:9px 6px}.plus-table th{color:var(--text-soft)}#enhancementsRoot section{margin-bottom:18px}#enhancementsRoot h3{margin-top:20px}#enhancementsRoot [role=status]{color:var(--gold-light);margin:8px 0}.plus-quick{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}@media(max-width:420px){.plus-grid{grid-template-columns:1fr 1fr;gap:8px}.plus-grid label{font-size:12px}.plus-grid input,.plus-grid select{padding:8px;font-size:16px}.plus-table table{font-size:12px}}
+ 
+.daily-summary{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:10px 0 14px;color:var(--text-soft);font-size:13px}.daily-summary strong{color:var(--gold-light)}.protected-session .session-card{padding:13px 16px}.protected-session .session-heading{margin-bottom:6px}.protected-session .step-list{margin:0}.protected-session .step-item{padding:7px 0}.protected-session .session-icon{font-size:22px}.session-row{scroll-margin-top:150px}.specialist-box summary,.optional-reminders summary,.routine-details summary{cursor:pointer;color:var(--gold-light);font-weight:600}.routine-details{margin-top:12px}.routine-details .week-session{font-size:12px}.optional-reminders>.large-card{margin-top:12px}#priorityBand[hidden]{display:none!important}.optional-reminders .ordo-top3{margin-top:14px}#todayView .section-header{margin-bottom:10px}
+@media(max-width:700px){.app-header{position:static}.header-inner{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:12px 16px}.header-inner h1{font-size:29px;margin:3px 0}.header-inner .date-display{font-size:14px;margin:0}.header-inner .small-title{font-size:10px}.header-right{min-width:0;gap:6px}.header-actions{gap:12px}.header-right .secondary-button{align-self:flex-end;padding:5px 10px;font-size:12px;min-height:0;width:auto}.menu-button{min-height:42px;min-width:42px}.progress-label-row{font-size:13px}.session-row{scroll-margin-top:12px}}
 </style>
 
 <link rel="icon" type="image/png" sizes="32x32" href="icons/dht-monogram-32.png?v=20261102">
@@ -69,7 +72,7 @@ class="date-display"
 <div class="progress-label-row">
 
 <span>
-Today's Progress
+Activity progress
 </span>
 
 <strong
@@ -110,7 +113,7 @@ aria-expanded="false"
 id="resetButton"
 class="secondary-button"
 >
-Reset Today
+Reset activities
 </button>
 
 </div>
@@ -249,234 +252,11 @@ class="app-view active-view"
 >
 
 
-<section class="overview-card">
-
-<div>
-
-<div class="section-kicker">
-TODAY
+<div class="daily-summary" aria-label="Today's planned activities"><span><strong id="sessionCount">0</strong> activities</span><span><strong id="totalMinutes">0</strong> planned min</span><span><strong id="completedCount">0</strong> steps done</span></div>
+<span id="dayHeading" hidden></span><span id="dayFocus" hidden></span>
+<section><div class="section-header"><div><h2>Today's activities</h2><p class="section-description">Only intentional activities to complete. Routine time remains reserved in the full weekly schedule.</p></div></div><div id="timeline" class="timeline"></div></section>
+<div id="closeoutChecklist" hidden></div>
 </div>
-
-<h2
-id="dayHeading"
->
-Today's Plan
-</h2>
-
-<p
-id="dayFocus"
-class="focus-description"
-></p>
-
-</div>
-
-
-<div class="overview-stats">
-
-<div class="stat">
-
-<span
-class="stat-number"
-id="sessionCount"
->
-0
-</span>
-
-<span class="stat-label">
-Sessions
-</span>
-
-</div>
-
-
-<div class="stat">
-
-<span
-class="stat-number"
-id="totalMinutes"
->
-0
-</span>
-
-<span class="stat-label">
-Non-work waking min
-</span>
-
-</div>
-
-
-<div class="stat">
-
-<span
-class="stat-number"
-id="completedCount"
->
-0
-</span>
-
-<span class="stat-label">
-Steps checked
-</span>
-
-</div>
-
-</div>
-
-</section>
-
-
-
-<section
-id="priorityBand"
-class="priority-band"
-></section>
-<div class="plus-quick"><button class="secondary-button" type="button" onclick="showView('enhancementsView')">Performance & Settings →</button></div>
-
-
-
-<section>
-
-<div class="section-header">
-
-<div>
-
-<div class="section-kicker">
-DAILY ROUTINE & CURRICULUM
-</div>
-
-<h2>
-Exactly What To Do
-</h2>
-
-<p class="section-description">
-Follow the time blocks; lunch learning is nested inside work. Check off individual steps as completed. Rest and family time are protected.
-</p>
-
-</div>
-
-</div>
-
-
-<div
-id="timeline"
-class="timeline"
-></div>
-
-</section>
-
-
-
-<section class="end-day-card">
-
-<div class="section-kicker">
-END OF DAY
-</div>
-
-<h2>
-Daily Closeout
-</h2>
-
-<div
-id="closeoutChecklist"
-class="closeout-checklist"
-></div>
-
-</section>
-
-
-
-<section class="large-card">
-
-<div class="section-header">
-
-<div>
-
-<div class="section-kicker">
-12-WEEK CYCLE
-</div>
-
-<h2>
-Development Priorities
-</h2>
-
-<p class="section-description">
-Concentrate serious effort on 2–3 areas while keeping the others in secondary or maintenance status.
-</p>
-
-</div>
-
-</div>
-
-
-<div class="priority-input-grid">
-
-
-<div class="priority-input-card primary">
-
-<label for="primaryInput">
-🎯 Primary Development
-</label>
-
-<textarea
-id="primaryInput"
-placeholder="Example: German, Army/Signal, Martial Arts"
-></textarea>
-
-</div>
-
-
-<div class="priority-input-card secondary">
-
-<label for="secondaryInput">
-🔄 Secondary Development
-</label>
-
-<textarea
-id="secondaryInput"
-placeholder="Example: History, Music"
-></textarea>
-
-</div>
-
-
-<div class="priority-input-card maintenance">
-
-<label for="maintenanceInput">
-🛠️ Maintenance
-</label>
-
-<textarea
-id="maintenanceInput"
-placeholder="Example: Chess, Philosophy, Constitution"
-></textarea>
-
-</div>
-
-
-</div>
-
-
-<div class="priority-save-row">
-
-<button
-id="savePriorityButton"
-class="primary-button"
->
-Save 12-Week Priorities
-</button>
-
-<span
-id="prioritySaved"
-class="save-message"
-></span>
-
-</div>
-
-</section>
-
-
-</div>
-
 
 
 <div
@@ -656,7 +436,94 @@ class="gpt-grid"
 </div>
 
 
-<div id="enhancementsView" class="app-view"><section class="large-card"><div class="section-kicker">ORDO PLUS</div><h2>Performance & Settings</h2><p class="section-description">Adjust your routine, measure skill development and protect your data.</p><button class="secondary-button back-to-today">← Today’s Plan</button></section><div id="enhancementsRoot"></div></div>
+<div id="enhancementsView" class="app-view"><section class="large-card"><div class="section-kicker">ORDO PLUS</div><h2>Performance & Settings</h2><p class="section-description">Adjust your routine, measure skill development and protect your data.</p><button class="secondary-button back-to-today">← Today’s Plan</button></section><div id="curriculumSettings"></div><div id="enhancementsRoot"></div><details class="large-card optional-reminders"><summary>Optional iPhone reminders & priorities</summary><p class="section-description">Use this only if you want to send priorities to Apple Reminders. Your daily checklist is the primary view.</p><section id="priorityBand" class="priority-band" hidden></section><section class="large-card">
+
+<div class="section-header">
+
+<div>
+
+<div class="section-kicker">
+12-WEEK CYCLE
+</div>
+
+<h2>
+Development Priorities
+</h2>
+
+<p class="section-description">
+Concentrate serious effort on 2–3 areas while keeping the others in secondary or maintenance status.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="priority-input-grid">
+
+
+<div class="priority-input-card primary">
+
+<label for="primaryInput">
+🎯 Primary Development
+</label>
+
+<textarea
+id="primaryInput"
+placeholder="Example: German, Army/Signal, Martial Arts"
+></textarea>
+
+</div>
+
+
+<div class="priority-input-card secondary">
+
+<label for="secondaryInput">
+🔄 Secondary Development
+</label>
+
+<textarea
+id="secondaryInput"
+placeholder="Example: History, Music"
+></textarea>
+
+</div>
+
+
+<div class="priority-input-card maintenance">
+
+<label for="maintenanceInput">
+🛠️ Maintenance
+</label>
+
+<textarea
+id="maintenanceInput"
+placeholder="Example: Chess, Philosophy, Constitution"
+></textarea>
+
+</div>
+
+
+</div>
+
+
+<div class="priority-save-row">
+
+<button
+id="savePriorityButton"
+class="primary-button"
+>
+Save 12-Week Priorities
+</button>
+
+<span
+id="prioritySaved"
+class="save-message"
+></span>
+
+</div>
+
+</section></details></div>
 </main>
 
 
@@ -681,9 +548,9 @@ The goal is capability, not simply time spent studying.
 
 <script src="config.js"></script>
 
-<script src="ordo-plus.js?v=20261125-ordo3"></script>
-<script src="app.js?v=20261125-ordo3"></script>
-<script src="top3.js?v=20261125-ordo3"></script>
+<script src="ordo-plus.js?v=20261125-ordo4"></script>
+<script src="app.js?v=20261125-ordo4"></script>
+<script src="top3.js?v=20261125-ordo4"></script>
 
 
 </body>
