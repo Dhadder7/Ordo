@@ -45,8 +45,16 @@ const ORDO_STAGE_KEY="ordo-curriculum-stages-v2";
 function readLocal(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch(e){return fallback;}}
 const stageDefaults={german:1,guitar:1,tang:1};
 function normalizeStages(raw){return Object.fromEntries(Object.keys(stageDefaults).map(k=>[k,Math.max(1,Math.min(k==="german"?19:12,Math.floor(Number(raw?.[k])||1)))]));}
+const ORDO_START_MIGRATION="ordo-day-one-20261125";
+if(!readLocal(ORDO_START_MIGRATION,false)){
+ localStorage.setItem("ordo-prelaunch-stages-20261125",JSON.stringify(normalizeStages(readLocal(ORDO_STAGE_KEY,stageDefaults))));
+ localStorage.setItem(ORDO_STAGE_KEY,JSON.stringify(stageDefaults));
+ localStorage.setItem(ORDO_START_MIGRATION,"true");
+}
 const stages=normalizeStages(readLocal(ORDO_STAGE_KEY,stageDefaults));
-const DW="https://learngerman.dw.com/en/nicos-weg/c-36519789", ANKI="https://apps.ankiweb.net/", GUITAR="https://www.justinguitar.com/classes/beginner-guitar-course-grade-one", SONGS="https://www.justinguitar.com/songs", BOOK="https://www.amazon.com/dp/0865681708", BOOKTOC="https://www.kriso.lv/tang-soo-do-ultimate-guide-korean-db-9780865681705.html";
+function programDay(date){return 1+Math.round((Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(2026,10,25))/86400000);}
+function programLabel(date){const n=programDay(date);return n>0?"Day "+n:"Before Day 1";}
+const DW="https://learngerman.dw.com/en/nicos-weg/c-36519789", ANKI="https://ankiweb.net/", GUITAR="https://www.justinguitar.com/classes/beginner-guitar-course-grade-one", SONGS="https://www.justinguitar.com/songs", BOOK="https://www.amazon.com/dp/0865681708", BOOKTOC="https://www.kriso.lv/tang-soo-do-ultimate-guide-korean-db-9780865681705.html";
 const FORM="https://www.youtube.com/watch?v=b5FzgKp9rg0", FORM2="https://www.youtube.com/watch?v=enGPL_HMtT0", STANCES="https://www.youtube.com/watch?v=IXvCuXaat_M", KICKS="https://www.youtube.com/watch?v=NTFvuSk2rVQ", TERMS="https://tka.cc/promotion/korean-terms/", PENTA="https://www.justinguitar.com/modules/minor-pentatonic-scale";
 const link=(url,label)=>'<a href="'+url+'" target="_blank" rel="noopener noreferrer">'+label+' ↗</a>';
 const germanUnits=[
@@ -103,16 +111,24 @@ function S(icon,name,start,end,minutes,objective,steps,resource=null,prompt="",t
 return {icon,name,start,end,minutes,objective,steps,resource,prompt,track,stage};
 }
 const res=(name,url,assignment)=>({name,url,assignment});
-function germanReview(start,end,minutes,stage){return S("🇩🇪","German Coach",start,end,minutes,"Spaced retrieval — build words you can actually use.",[
-"Open "+link(ANKI,"Anki")+" → German deck → Study Now. Review due cards first (about 20; do not force a quota).",
-"Add up to 3 useful new cards from the current DW unit only; nouns include article, plural and a short sentence.",
+function germanReview(start,end,minutes,stage,first=false){
+if(first)return S("🇩🇪","German Coach",start,end,minutes,"Day 1 · Set up free AnkiWeb and learn three cards. No prior review required.",[
+"Open "+link("https://ankiweb.net/account/signup","AnkiWeb sign up (free)")+" in Safari. Create an account, verify your email if prompted, then "+link("https://ankiweb.net/account/login","log in")+". Already have an account? Just log in.",
+"Open "+link("https://ankiweb.net/decks","Decks")+" → Create Deck; name it German A1. If that deck exists, select it instead.",
+"Tap Add. Choose German A1 and Basic (if shown). Enter Front: Hallo! / Back: Hello! Tap Add to save. Repeat for Guten Morgen! / Good morning! and Tschüss! / Bye! Do not add duplicates.",
+"Return to Decks → German A1 → tap the deck or Study Now. Say each answer before Show Answer. Select Again if incorrect, Good if correct. Study the available cards until finished.",
+"Success: German A1 deck exists, three cards saved, and you can recall the greetings aloud. If setup exceeds 15 minutes, finish setup first; resume next session."
+],res("Open free AnkiWeb","https://ankiweb.net/","Use the browser; no paid iPhone app or download required."),"","german",stage);
+return S("🇩🇪","German Coach",start,end,minutes,"Spaced retrieval — build words you can actually use.",[
+"Open "+link("https://ankiweb.net/decks","AnkiWeb Decks")+" → German A1 → tap the deck or Study Now. Say each answer before Show Answer; choose Again if wrong or Good if correct. Review due cards (about 20; do not force a quota). If the deck does not exist, follow Day 1 setup first.",
+"Tap Add → German A1 → Basic. Enter up to 3 expressions from the last completed DW lesson: German on Front, meaning on Back; tap Add to save each. Include article and plural for nouns; avoid duplicates.",
 "Say five reviewed phrases aloud; mark difficult items for the next session. Use the full 15 minutes, or stop when due cards are done."
-],null,"","german",stage);}
+],res("Open AnkiWeb","https://ankiweb.net/decks","Use the free browser-based deck."),"","german",stage);}
 function germanLesson(day,stage,start,end,minutes){
 const [unit,lessonText,goal]=germanUnits[stage-1], lessons=lessonText.split("|"), n=day-1;
 const core= n>=0&&n<4;
 const title=core?lessons[n]:day===5?"Error correction + speaking":day===6?"Unit review + conversation":"Unit mastery assessment";
-const path="Open DW → Nicos Weg → A1 → "+unit+" → "+(core?title:"the four lessons in this unit")+". If the lesson is already mastered, use the stage selector to choose the appropriate unit.";
+const path="Open "+link(DW,"DW Nicos Weg")+" → A1 → "+unit+" → "+(core?title:"the four lessons in this unit")+". If the lesson is already mastered, use the stage selector to choose the appropriate unit.";
 let steps=core?[
 "0–3 min: "+path+" Open the lesson video.",
 "3–8 min: watch once without reading the transcript; say what happened in German or English.",
@@ -138,6 +154,9 @@ let steps=core?[
 "55–65 min: write five original sentences; correct after attempting.",
 "65–75 min: record results. Advance only after at least 80% exercise/word accuracy, 4/5 comprehensible sentences and a simple conversation with minimal English. Otherwise repeat this stage. "+(stage===19?"Take the full A1 assessment and start DW A2 only when ready; continue the same study/retrieval cycle.":"")
 ];
+if(stage===1&&day===1)steps[0]="0–3 min: open "+link(DW,"DW Nicos Weg")+" → A1 → Welcome to A1! → Hallo! (first lesson). Sign in or create a free DW account to save progress, or start directly. Tap Play. Alternate video: "+link("https://www.youtube.com/watch?v=dC6ZGLzdaTs","DW episode 1")+".";
+if(minutes===75&&day<=5)steps.push("35–75 min: finish remaining exercises, redo weak tasks, listen again and speak five original sentences. Do not skip ahead just to fill time.");
+if(minutes===35&&day>=6)steps=day===6?["0–5 min: recall ten words from the four lessons without notes.","5–20 min: open "+link(DW,"Nicos Weg")+" → A1 → "+unit+"; revisit missed exercises and note errors.","20–30 min: role-play the unit goal aloud with German Coach.","30–35 min: record your score and one thing to revisit."]:["0–10 min: redo DW unit exercises without hints; record accuracy.","10–20 min: role-play the unit goal with German Coach, aiming for eight exchanges.","20–30 min: write five original sentences, then correct them.","30–35 min: advance only after 80% exercise and recall accuracy, 4/5 comprehensible sentences and a simple conversation with minimal English; otherwise repeat."];
 return S("🇩🇪","German Coach",start,end,minutes,"Stage "+stage+"/19 · "+unit+" · "+title+". Goal: "+goal+".",steps,res("DW Nicos Weg",DW,"Follow the A1 course navigation above. The DW course remains the source of truth."),"Act as my A1 German conversation partner. Unit: "+unit+". Goal: "+goal+". Ask one question at a time in German; let me respond before correcting. End with a score out of 10, three errors to revisit, and a practical next step.","german",stage);}
 function guitar(day,stage,start,end){
 const [module,skill,pairs,gate,song,video,bpm]=guitarWeeks[stage-1];
@@ -148,6 +167,13 @@ day===1?"5–15 min: open "+link(GUITAR,"JustinGuitar Grade 1")+" → "+module+"
 "15–25 min: "+pairs+". Do 3 one-minute change drills with short rests; count only clear chords. "+(stage>=9?"Spend 4 minutes with "+link(PENTA,"minor pentatonic lesson")+" and play one clean note per beat.":"Check fingers and unwanted string noise, then strum steady quarter notes."),
 "25–35 min: "+link(video,song+" tutorial")+". "+(day===1?"Learn one small phrase or section; loop it slowly.":day===4?"Loop the hardest 2–4 bars, then connect the next section.":day===6?"Play verse and chorus together at a manageable speed.":"Record a continuous take of the assigned section or whole song.")+" Use "+link(SONGS,"JustinGuitar song library")+" for chord diagrams and song lessons.",
 "35–40 min: log tempo, clean changes/minute, and song section. "+(day===0?"Mastery gate: "+gate+". If not met, repeat this stage; do not advance simply because the week ended.":"Success today: three steady repetitions with clear notes; slow down when errors recur.")
+];
+if(stage===1&&day===1)steps=[
+"0–5 min: open "+link(GUITAR,"JustinGuitar Grade 1")+" → Module 0. Create a free account or sign in if prompted. Open the tuning lesson and tune strings E A D G B E from thickest to thinnest.",
+"5–15 min: Module 1 → How To Play The D Chord. Watch, pause, copy the fingers and pick each intended string separately.",
+"15–25 min: Module 1 → How To Play The A Chord. Watch and copy; pick the intended strings separately. Repeat slowly.",
+"25–35 min: find One Minute Changes in Module 1. Switch between A and D slowly for three one-minute rounds with rests. Count clean changes; no minimum today.",
+"35–40 min: play four slow downstrums on A and four on D, twice. Log baseline clean changes per minute. Success: identify strings and make both chord shapes, even slowly. No full song required."
 ];
 return S("🎸","Music Mentor",start,end,40,"Guitar stage "+stage+"/12 · "+mode+" · "+module,steps,res("JustinGuitar course",GUITAR,"Open the module listed above; song and scale links are embedded in the steps."),"Help me troubleshoot guitar stage "+stage+": "+skill+". My target is "+gate+". Ask for my tempo, clean changes, and one problem. Suggest one focused correction, not an entirely new lesson.","guitar",stage);}
 function tang(day,stage,start,end,minutes){
@@ -161,25 +187,31 @@ return S("🥋","Martial Arts Coach",start,end,minutes,"Tang Soo Do stage "+stag
 (short?"25–30":"35–40")+" min: cool down; log one cue and a short result. "+(day===6?"Mastery gate: "+gate+". Repeat if not met; seek a qualified instructor for technique feedback.":"Target: consistent control before speed. Review "+link(TERMS,"Korean terms")+" for the relevant movement.")
 ],res("Tang Soo Do reference book",BOOK,"Use the specified pages; the linked video is a supplementary demonstration, not verified as the identical lineage."),"Help me review "+topic+" using Kang Uk Lee's Tang Soo Do. Do not invent page contents or rank requirements. Ask what I observed in my book, help compare terminology, and suggest one safe correction. Recommend qualified instructor feedback when needed.","tang",stage);}
 function simple(icon,name,start,end,minutes,objective,steps,resource=null){return S(icon,name,start,end,minutes,objective,steps,resource);}
-function buildSchedule(s){
+function buildSchedule(s,referenceDate=new Date()){
 const schedule={};
 for(let d=0;d<7;d++){
 const weekday=d>=1&&d<=5, a=[];
+const sessionDate=new Date(referenceDate);sessionDate.setDate(sessionDate.getDate()+d-referenceDate.getDay());
+const pd=programDay(sessionDate), first=pd===1, gd=pd>0?((pd-1)%7)+1:(d||7);
 const add=(...args)=>a.push(simple(...args));
 if(weekday){
 add("☀️","Morning setup","0530","0545",15,"Hydrate and get ready to train.",["Get up; hydrate; use restroom; change into training clothes; optional light snack."]);
 add("🏋️","Jim Stoppani workout","0545","0715",90,"Reserve 60–90 minutes; follow your selected program, not an ORDO workout.",["Open Jim Stoppani → Today's Workout (or Workouts to select your program). Follow the scheduled session or rest day.","Log the workout in Jim Stoppani. Stop in time to shower; if finished early, use the buffer."],res("Jim Stoppani app (iPhone)","https://apps.apple.com/us/app/jim-stoppani/id399978602","Use your existing app for programming and tracking."));
 add("🚿","Get ready","0715","0745",30,"Shower, grooming, uniform/clothes.",["Shower, dress, and prepare what you need for work."]);
 add("🍳","Breakfast","0745","0805",20,"Eat and prepare for the workday.",["Eat breakfast; pack lunch and essentials if needed."]);
-a.push(germanReview("0805","0820",15,s.german));
+a.push(germanReview("0805","0820",15,s.german,first));
 add("🚗","Commute and arrival","0820","0845",25,"12-minute commute plus 13-minute buffer.",["Leave at 0820; aim to arrive at 0832; allow 13 minutes before work."]);
 add("💼","Work + breaks","0845","1630",465,"Work first; lunch study is nested inside the work block.",["During permitted short breaks, optionally spend up to 10 minutes total on Anki/listening; take real breaks too.","Lunch: eat for 25 minutes first. Use the following 35-minute German block only if duty and lunch allow. Extra 0–30 minutes: walk, read, or decompress."]);
-a.push(germanLesson(d,s.german,"Lunch +25","Lunch +60",35));
+a.push(germanLesson(gd,s.german,"Lunch +25","Lunch +60",35));
 add("🚗","Commute home","1630","1642",12,"Leave work and transition home.",["Commute safely; no screen-based study while driving."]);
 add("🏡","Home and dinner prep","1642","1730",48,"Decompress, family time and meal preparation.",["Change clothes, handle urgent household tasks and help prepare dinner."]);
 add("🍽️","Family dinner","1730","1830",60,"Protected family time.",["Eat together without multitasking when possible."]);
 add("🧹","Cleanup / household","1830","1900",30,"Clear the evening for family or hobbies.",["Help clean up, prepare for tomorrow, and handle small chores."]);
-if(d===1){
+if(first){
+a.push(guitar(1,s.guitar,"1900","1940"));
+a.push(tang(2,s.tang,"1940","2010",30));
+add("☕","Free time","2010","2100",50,"Keep Day 1 manageable.",["Film is optional today; keep this time open."]);
+}else if(d===1){
 a.push(guitar(d,s.guitar,"1900","1940"));
 a.push(S("🇩🇪","German Coach","1940","2010",30,"Speaking practice tied to "+germanUnits[s.german-1][0]+".",["5 min: retrieve five words and phrases from lunch.","20 min: open German Coach; role-play this week's practical goal, answering before corrections.","5 min: repeat corrected sentences and note one weak point."],null,"Practice this A1 topic with me: "+germanUnits[s.german-1][2]+". Ask one question at a time and correct after I answer.","german",s.german));
 add("☕","Free time","2010","2100",50,"Unstructured personal or family time.",["Keep this time open; do not automatically fill it with unfinished sessions."]);
@@ -202,7 +234,7 @@ add("☀️","Morning / breakfast","0630","0730",60,"Allow a slightly later week
 if(d===6)add("🏋️","Jim Stoppani workout","0730","0900",90,"Follow the scheduled session or rest day.",["Open Jim Stoppani Today's Workout; log there; don't add extra training to make up misses."],res("Jim Stoppani","https://www.jimstoppani.com/","Use the existing workout plan."));
 else add("🚶","Recovery / rest","0730","0900",90,"Keep Sunday gentle and flexible.",["Walk, stretch comfortably, or rest. No mandatory workout."]);
 add("🚿","Shower / reset","0900","0930",30,"Get ready for the day.",["Shower, dress, and transition to study."]);
-a.push(germanLesson(d,s.german,"0930","1045",75));
+a.push(germanLesson(gd,s.german,"0930","1045",75));
 add("🏡","Family, errands and lunch","1045","1400",195,"Protected flexible time.",["Make room for lunch, shopping, chores, outings, and unstructured family time."]);
 a.push(guitar(d,s.guitar,"1400","1440"));
 if(d===6)a.push(tang(d,s.tang,"1450","1530",40));
@@ -216,7 +248,7 @@ add("📖","Bedtime reading","2100","2115",15,"Relax with a book.",["Read for 15
 add("🌙","Bed routine","2115","2130",15,"Protect bedtime.",["Hygiene, set alarm, put away screens."]);
 add("🛏️","Sleep opportunity","2130",d===6?"0630":"0530",d===6?540:480,"Protect sleep.",["Lights out at 2130; allow the full sleep window."]);
 }
-schedule[d]={day:days[d],focus:"Protect sleep, dinner and work first. Follow the next learning assignment at a sustainable pace.",priority:{primary:"Sleep · Family · German",secondary:"Jim Stoppani · Guitar · Tang Soo Do",maintenance:"Reading · Film · Free time"},sessions:a};
+schedule[d]={day:days[d],focus:(first?"Day 1: start each learning track from its first lesson. ":"")+"Protect sleep, dinner and work first. Follow the next learning assignment at a sustainable pace.",priority:{primary:"Sleep · Family · German",secondary:"Jim Stoppani · Guitar · Tang Soo Do",maintenance:"Reading · Film · Free time"},sessions:a};
 }
 return schedule;
 }
@@ -227,8 +259,8 @@ function isActionable(s){return !!s.track||["Jim Stoppani workout","Family dinne
 function isProtectedAnchor(s){return ["Family dinner","Sleep opportunity"].includes(s.name);}
 function displaySessionName(s){if(s.track==="german")return s.minutes<=15?"German · Anki":s.objective.startsWith("Speaking practice")?"German · Conversation":"German · Nicos Weg";if(s.track==="guitar")return "Guitar";if(s.track==="tang")return "Tang Soo Do";if(s.name==="Sleep opportunity")return "Bedtime / sleep";return s.name;}
 function displayedSteps(s){if(s.name==="Family dinner")return ["Family dinner completed."];if(s.name==="Sleep opportunity")return ["Kept the planned bedtime."];if(s.name==="Jim Stoppani workout")return ["Follow the workout or rest day assigned in Jim Stoppani.","Log the session in Jim Stoppani."];return s.steps;}
-function stepKeyFor(index,step,dayData=todayData){const s=dayData.sessions[index];return "s-"+(s._originalIndex??index)+"-"+(s.track?s.track+"-"+s.stage+"-":"")+(s._variant?s._variant+"-":"")+"step-"+step;}
-function storedSchedule(date){const key=formatDateKey(date), today=formatDateKey(new Date());if(key===today)return schedule;const raw=buildSchedule(normalizeStages(readLocal("ordo-stage-history-"+key,stages)));const history=readLocal("ordo-settings-history-"+key,null);if(!window.ORDOPlus||!ordoSettings)return raw;if(key<today&&!history)return raw;const conf=window.ORDOPlus.clean(history||ordoSettings);return window.ORDOPlus.adapt(raw,window.ORDOPlus.errors(conf).length?ordoSettings:conf,key);}
+function stepKeyFor(index,step,dayData=todayData){const s=dayData.sessions[index];return "s-"+(s._originalIndex??index)+"-"+(s.track?s.track+"-"+s.stage+"-":"")+(s._variant?s._variant+"-":"")+(s.track&&dayData.focus.startsWith("Day 1:")?"day-one-":"")+"step-"+step;}
+function storedSchedule(date){const key=formatDateKey(date), today=formatDateKey(new Date());if(key===today)return schedule;const raw=buildSchedule(normalizeStages(readLocal("ordo-stage-history-"+key,stages)),date);const history=readLocal("ordo-settings-history-"+key,null);if(!window.ORDOPlus||!ordoSettings)return raw;if(key<today&&!history)return raw;const conf=window.ORDOPlus.clean(history||ordoSettings);return window.ORDOPlus.adapt(raw,window.ORDOPlus.errors(conf).length?ordoSettings:conf,key);}
 
 
 /* =====================================================
@@ -237,7 +269,7 @@ function storedSchedule(date){const key=formatDateKey(date), today=formatDateKey
 
 
 const resources = [
-{"area":"GERMAN","name":"Anki","description":"Spaced retrieval and vocabulary.","url":"https://apps.ankiweb.net/"},{"area":"GERMAN","name":"Easy German","description":"Authentic listening practice.","url":"https://www.youtube.com/@EasyGerman"},{"area":"GUITAR","name":"JustinGuitar Grade 1","description":"Structured modules, demonstrations and exercises.","url":"https://www.justinguitar.com/classes/beginner-guitar-course-grade-one"},{"area":"GUITAR","name":"JustinGuitar Songs","description":"Song lessons and chord diagrams.","url":"https://www.justinguitar.com/songs"},{"area":"GUITAR","name":"Minor pentatonic","description":"Scale shapes and blues phrasing.","url":"https://www.justinguitar.com/modules/minor-pentatonic-scale"},{"area":"TANG SOO DO","name":"Kang Uk Lee book contents","description":"ISBN-matched contents and page ranges; verify against your copy.","url":"https://www.kriso.lv/tang-soo-do-ultimate-guide-korean-db-9780865681705.html"},{"area":"TANG SOO DO","name":"Basic Form One tutorial","description":"Supplementary slow form demo; compare with book and instructor.","url":"https://www.youtube.com/watch?v=b5FzgKp9rg0"},{"area":"FITNESS","name":"Jim Stoppani","description":"Workout programming and tracking are handled outside ORDO.","url":"https://www.jimstoppani.com/"},
+{"area":"GERMAN","name":"AnkiWeb (free browser)","description":"Create your deck, add cards and study in Safari; no download required.","url":"https://ankiweb.net/"},{"area":"GERMAN","name":"Easy German","description":"Authentic listening practice.","url":"https://www.youtube.com/@EasyGerman"},{"area":"GUITAR","name":"JustinGuitar Grade 1","description":"Structured modules, demonstrations and exercises.","url":"https://www.justinguitar.com/classes/beginner-guitar-course-grade-one"},{"area":"GUITAR","name":"JustinGuitar Songs","description":"Song lessons and chord diagrams.","url":"https://www.justinguitar.com/songs"},{"area":"GUITAR","name":"Minor pentatonic","description":"Scale shapes and blues phrasing.","url":"https://www.justinguitar.com/modules/minor-pentatonic-scale"},{"area":"TANG SOO DO","name":"Kang Uk Lee book contents","description":"ISBN-matched contents and page ranges; verify against your copy.","url":"https://www.kriso.lv/tang-soo-do-ultimate-guide-korean-db-9780865681705.html"},{"area":"TANG SOO DO","name":"Basic Form One tutorial","description":"Supplementary slow form demo; compare with book and instructor.","url":"https://www.youtube.com/watch?v=b5FzgKp9rg0"},{"area":"FITNESS","name":"Jim Stoppani","description":"Workout programming and tracking are handled outside ORDO.","url":"https://www.jimstoppani.com/"},
 
 {
 
@@ -571,7 +603,7 @@ document.getElementById(
 "dayHeading"
 ).textContent =
 
-todayData.day +
+programLabel(now)+" · "+todayData.day +
 " Development Plan";
 
 
@@ -975,7 +1007,7 @@ function openWeekDay(date){
  const key=formatDateKey(date);
  if(key===dateString){showView("todayView");return;}
  const data=storedSchedule(date)[date.getDay()],editable=dayCanEdit(date);
- document.getElementById("selectedDayTitle").textContent=new Intl.DateTimeFormat(undefined,{weekday:"long",month:"long",day:"numeric"}).format(date);
+ document.getElementById("selectedDayTitle").textContent=new Intl.DateTimeFormat(undefined,{weekday:"long",month:"long",day:"numeric"}).format(date)+" · "+programLabel(date);
  document.getElementById("selectedDayNote").textContent=key>dateString?"Upcoming plan · preview only. Future lessons follow your current stages.":editable?"Saved day · you can update its checklist.":"Historical preview · no saved curriculum snapshot for this date.";
  updateSelectedDayStats(data,dayState(date));
  renderDayActivities(document.getElementById("selectedDayTimeline"),date);document.getElementById("expandSelected").textContent="Expand all";
@@ -1406,7 +1438,7 @@ function renderWeeklySchedule(){
  const card=document.createElement("button");card.type="button";card.className="day-button"+(isToday?" current-day":"");
  const count=data.sessions.filter(isActionable).length;
  const focus=[...new Set(data.sessions.filter(s=>s.track||s.name==="Film Index"||s.name==="Jim Stoppani workout").map(s=>s.track?trackLabels[s.track]:s.name==="Film Index"?"Film":"Workout"))].join(" · ");
- card.innerHTML='<span><strong>'+data.day+(isToday?' <small class="today-mark">TODAY</small>':'')+'</strong><small>'+fmt.format(date)+' · '+count+' activities</small><small>'+focus+'</small></span><span class="day-status">'+(status.status==="future"?"Upcoming":status.percentage+"%")+' <span aria-hidden="true">›</span></span>';
+ card.innerHTML='<span><strong>'+data.day+(isToday?' <small class="today-mark">TODAY</small>':'')+'</strong><small>'+fmt.format(date)+' · '+programLabel(date)+' · '+count+' activities</small><small>'+focus+'</small></span><span class="day-status">'+(status.status==="future"?"Upcoming":status.percentage+"%")+' <span aria-hidden="true">›</span></span>';
  card.addEventListener("click",()=>openWeekDay(date));weeklyGrid.appendChild(card);
  }
 }
